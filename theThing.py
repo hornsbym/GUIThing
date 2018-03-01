@@ -99,26 +99,31 @@ def createRoomObjs(listOfRoomNames):
         roomObjects.append(r)
     return roomObjects
 
-def changeRoom(character, targetRoom, listOfRooms):
+def changeRoom(characterName, targetRoomName, listOfRooms):
     """Moves a character from one room to another."""
-    oldRoom= findCharacterRoom(character.getName(), listOfRooms)
-    oldRoom.removeOccupant(character)
-    character.setCurrentRoom(targetRoom)
-    targetRoom.acceptChar(character)
+    prevRoomObj = findCharacterRoom(characterName, listOfRooms)
+    charObj = findCharObj(characterName, prevRoomObj)
+    targetRoomObj = findRoomObj(targetRoomName, listOfRooms)
+    prevRoomObj.removeOccupant(charObj)
+    charObj.setCurrentRoom(targetRoomObj)
+    targetRoomObj.acceptChar(charObj)
 
 def findCharObj(characterName, characterRoom):
     """Finds the object bearing the character name in the list of rooms; returns a character object."""
     return characterRoom.getChar(characterName)
-    """for x in range(len(characterRoom.occupantNames())):
-        if characterName == characterRoom.occupantNames()[x]:
-            return characterRoom.occupantNames()[x]"""
 
-def findCharacterRoom(character, roomList):
+def findCharacterRoom(characterName, roomList):
     """Takes the name of a character, then returns the room with that character in it; returns a room object."""
     for x in range(len(roomList)):
-        if character in roomList[x].occupantNames():
+        if characterName in roomList[x].occupantNames():
             return roomList[x]
     print("Character not in any room.")
+
+def findRoomObj(roomName, roomList):
+    """Takes the name of a room, then returns the room object of that name."""
+    for room in range(len(roomList)):
+        if roomList[room].getName() == roomName:
+            return roomList[room]
     
 def main():
 
@@ -128,6 +133,9 @@ def main():
 
     #Puts the characters in their rooms.
     permCharList = assignCharsToRooms(charObjs, roomObjs)
+
+    print("Initial character status:")
+    print()
     
     #Prints character objects
     for x in range(len(permCharList)):
@@ -135,7 +143,7 @@ def main():
         print()
         
     print("------------------------------------------")
-    print("Before room change...")
+    print("Rooms before change...")
     print()
 
     #Prints room objects
@@ -144,12 +152,11 @@ def main():
         print()
 
     print("Macready is in the... "+ findCharacterRoom("MacReady", roomObjs).getName())
-    print("Searching for: " + permCharList[0].getName())
     print("Moving to the: " + roomObjs[0].getName())
-    changeRoom(permCharList[0], roomObjs[0], roomObjs)
+    changeRoom("MacReady", "Kitchen", roomObjs)
 
     print("------------------------------------------")
-    print("After room change...")
+    print("Rooms after change...")
     print()
 
     #Prints room objects
@@ -158,18 +165,13 @@ def main():
         print()
 
     print("------------------------------------------")
-    print("Final character objects")
+    print("Final character objects:")
     print()
 
     #Prints character objects
     for x in range(len(permCharList)):
         print(permCharList[x])
         print()
-
-    print("------------------------------------------")
-    print("Searching the: " + roomObjs[0].getName())
-    print(roomObjs[0].getChar("MacReady"))
-    
     
 if __name__ == '__main__':
     main()
