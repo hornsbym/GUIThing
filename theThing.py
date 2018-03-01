@@ -67,7 +67,17 @@ class room(object):
             if char == self._occupants[x].getName():
                 return self._occupants[x]
         else:
-            return char + " is not in the room."        
+            return char + " is not in the room."
+        
+class MacReady(person):
+    pass
+    ''''def __init__(self, personName, infectedStatus):
+        self._name = personName
+        self._infectedStatus = infectedStatus
+        self._currentRoom = None''''
+
+class Blair(person):
+    pass
 
 def assignCharsToRooms(characterList, roomList):
     """Assigns every character to a room."""
@@ -150,10 +160,12 @@ def main():
     for x in range(len(roomObjs)):
         print(roomObjs[x])
         print()
-
-    print("Macready is in the... "+ findCharacterRoom("MacReady", roomObjs).getName())
-    print("Moving to the: " + roomObjs[0].getName())
+        
+    print("Moving all characters to the " + roomObjs[0].getName() + ".")
     changeRoom("MacReady", "Kitchen", roomObjs)
+    changeRoom("Blair", "Kitchen", roomObjs)
+    changeRoom("Childs", "Kitchen", roomObjs)
+    changeRoom("Copper", "Kitchen", roomObjs)
 
     print("------------------------------------------")
     print("Rooms after change...")
