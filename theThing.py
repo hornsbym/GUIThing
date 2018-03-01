@@ -11,8 +11,8 @@ is as it seems!
 """
 import random
 
-charNames = ['MacReady','Blair','Copper','Childs']
-roomNames = ['Kitchen', 'Experiment Room', 'Hangar', 'Dining Room']
+charNames = ['Fuches','Windows','Copper','Childs',"Barclay","Bennings","Clarke","Norris","Van Wall","Connant"]
+roomNames = ['Kitchen', 'Experiment Room', 'Hangar', 'Dining Room', "Blair's Room", "Foyer", "Dog Room","Thawing Room"]
 
 class person(object):
     """Parent class for every person, including the player ."""
@@ -34,6 +34,11 @@ class person(object):
     def getCurrentRoom(self, room):
         """Returns the room object the character is currently in."""
         return self._currentRoom
+    def getRoomName(self):
+        return self._currentRoom.getName()
+    def getInfectedStatus(self):
+        """Returns True if person is infected, False if not."""
+        return self._infectedStatus 
                 
 class room(object):
     """Represents the basic outline of a room."""
@@ -42,11 +47,10 @@ class room(object):
         self._occupants = []
     def __str__(self):
         """Returns string representation of the room objects"""
-        return "Room: " + self._name + '\n' + "Occupants: " + "\n" \
-               + self.occupantNames()
+        return "Room: " + self._name + '\n' + "Occupants: " + str(self.occupantNames())
     def getName(self):
         """Adds a character to the room."""
-        return self._name
+        return str(self._name)
     def occupantNames(self):
         """Returns a list of names of all the characters in the room."""
         occupantNames = []
@@ -72,15 +76,16 @@ class room(object):
         
 class MacReady(person):
     """Player controlled person instance."""
-    pass
-    ''''def __init__(self, personName, infectedStatus):
-        self._name = personName
-        self._infectedStatus = infectedStatus
-        self._currentRoom = None''''
+    def __init__(self):
+        self._name = "MacReady"
+        self._infectedStatus = False
+
 
 class Blair(person):
     """Special character instance; provides guidance for the playable character."""
-    pass
+    def __init__(self):
+        self._name = "Blair"
+        self._infectedStatus = False
 
 def assignCharsToRooms(characterList, roomList):
     """Assigns every character to a room."""
@@ -94,13 +99,17 @@ def assignCharsToRooms(characterList, roomList):
         characterList.remove(char)
     return newCharList
 
-def createCharObjs(listOfCharacterNames):
+def createCharObjs(listOfCharacterNames, roomList):
     """Creates a list of character objects when given a list of names."""
     charObjects = []
     #Creates characters from information in charNames list
     for x in range(len(listOfCharacterNames)):
         char = person(listOfCharacterNames[x], False)
         charObjects.append(char)
+    player = MacReady()
+    blair = Blair()
+    charObjects.append(player)
+    charObjects.append(blair)
     return charObjects
     
 def createRoomObjs(listOfRoomNames):
@@ -137,56 +146,82 @@ def findRoomObj(roomName, roomList):
     for room in range(len(roomList)):
         if roomList[room].getName() == roomName:
             return roomList[room]
+        
+def displayRoomStatus(roomList):
+    """Takes a list of rooms and prints each room's status."""
+    #Prints room objects
+    for x in range(len(roomList)):
+        print(roomList[x])
+        print()
+
+def displayCharStatus(characterList):
+    """Takes a list of characters and prints each of their status."""
+    #Prints character objects
+    for x in range(len(characterList)):
+        print(characterList[x])
+        print()
+
+def changePlayerRoom(listOfRooms):
+    """Change's MacReady's (player's) room."""
+    targetRoom= str(input("Where would you like to move to? "))
+    changeRoom("MacReady", targetRoom, listOfRooms)
+
+def setup(listOfRooms):
+    """Puts Blair and Macready (player) into their start room"""
+    changeRoom("MacReady", "Blair's Room", listOfRooms)
+    changeRoom("Blair", "Blair's Room", listOfRooms)
+    print("The Thing")
+    print("Created by Mitchell Hornsby")
+    print()
+    print('You play as MacReady, an antarctic researcher locked in an underground\
+ research base with \
+several others. Two of them have been taken over by a parasite known only\
+as "The Thing", which looks and acts exactly like its host. Your goal is \
+to either identify and kill every infected researcher and escape, or destroy\
+ the base along with yourself. The camp scientist, Blair, has been locked away\
+from the others, and will help you identify who might be infected. But be \
+warned... Not everything is as it seems!')
+    print()
+    start = input("Press enter to start!")
+    if start == "":
+        return
+    else:
+        return
+
+def turn(listOfRooms):
+    """Controls the events that happen each turn."""
+    print()
+    stateLocation('MacReady', listOfRooms)
+    userInput = str(input("What would you like to do? "))
+    command = userInput.upper()
+    if command == 'MOVE':
+        changePlayerRoom(listOfRooms)
+    if command == 'STATUS':
+        print()
+        displayRoomStatus(listOfRooms)
+    if command == 'HELP':
+        print("Commands are move, status, and help.")
+
+def stateLocation(playerName, listOfRooms):
+    """Gives the player's location"""
+    player = findCharObj(playerName, findCharacterRoom(playerName, listOfRooms))
+    if findCharacterRoom(playerName, listOfRooms).getName() == "Blair's Room":        
+        print("You are in " + player.getRoomName() + ".")
+    else:
+        print("You are in the " + player.getRoomName() + ".")
     
 def main():
-
     #Creates a list of character and room objects
-    charObjs = createCharObjs(charNames)
     roomObjs = createRoomObjs(roomNames)
+    charObjs = createCharObjs(charNames, roomObjs)
 
     #Puts the characters in their rooms.
     permCharList = assignCharsToRooms(charObjs, roomObjs)
 
-    print("Initial character status:")
-    print()
+    setup(roomObjs)
     
-    #Prints character objects
-    for x in range(len(permCharList)):
-        print(permCharList[x])
-        print()
-        
-    print("------------------------------------------")
-    print("Rooms before change...")
-    print()
-
-    #Prints room objects
-    for x in range(len(roomObjs)):
-        print(roomObjs[x])
-        print()
-        
-    print("Moving all characters to the " + roomObjs[0].getName() + ".")
-    changeRoom("MacReady", "Kitchen", roomObjs)
-    changeRoom("Blair", "Kitchen", roomObjs)
-    changeRoom("Childs", "Kitchen", roomObjs)
-    changeRoom("Copper", "Kitchen", roomObjs)
-
-    print("------------------------------------------")
-    print("Rooms after change...")
-    print()
-
-    #Prints room objects
-    for x in range(len(roomObjs)):
-        print(roomObjs[x])
-        print()
-
-    print("------------------------------------------")
-    print("Final character objects:")
-    print()
-
-    #Prints character objects
-    for x in range(len(permCharList)):
-        print(permCharList[x])
-        print()
+    while True:
+        turn(roomObjs)
     
 if __name__ == '__main__':
     main()
