@@ -32,6 +32,7 @@ class person(object):
         """Sets the character's current room"""
         self._currentRoom = room
     def getCurrentRoom(self, room):
+        """Returns the room object the character is currently in."""
         return self._currentRoom
                 
 class room(object):
@@ -70,6 +71,7 @@ class room(object):
             return char + " is not in the room."
         
 class MacReady(person):
+    """Player controlled person instance."""
     pass
     ''''def __init__(self, personName, infectedStatus):
         self._name = personName
@@ -77,6 +79,7 @@ class MacReady(person):
         self._currentRoom = None''''
 
 class Blair(person):
+    """Special character instance; provides guidance for the playable character."""
     pass
 
 def assignCharsToRooms(characterList, roomList):
