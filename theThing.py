@@ -36,6 +36,7 @@ class person(object):
         return self._currentRoom
     def getRoomName(self):
         return self._currentRoom.getName()
+    
     def getInfectedStatus(self):
         """Returns True if person is infected, False if not."""
         return self._infectedStatus 
@@ -79,7 +80,9 @@ class MacReady(person):
     def __init__(self):
         self._name = "MacReady"
         self._infectedStatus = False
-
+        self._visitedRooms = []
+    def addVisited(self):
+        self._visitedRooms.append(self.getCurrentRoom())
 
 class Blair(person):
     """Special character instance; provides guidance for the playable character."""
@@ -131,18 +134,21 @@ def changeRoom(characterName, targetRoomName, listOfRooms):
     targetRoomObj.acceptChar(charObj)
 
 def findCharObj(characterName, characterRoom):
-    """Finds the object bearing the character name in the list of rooms; returns a character object."""
+    """Finds the object bearing the character name in the \
+    list of rooms; returns a character object."""
     return characterRoom.getChar(characterName)
 
 def findCharacterRoom(characterName, roomList):
-    """Takes the name of a character, then returns the room with that character in it; returns a room object."""
+    """Takes the name of a character, then returns the room \
+    with that character in it; returns a room object."""
     for x in range(len(roomList)):
         if characterName in roomList[x].occupantNames():
             return roomList[x]
     print("Character not in any room.")
 
 def findRoomObj(roomName, roomList):
-    """Takes the name of a room, then returns the room object of that name."""
+    """Takes the name of a room, then \
+    returns the room object of that name."""
     for room in range(len(roomList)):
         if roomList[room].getName() == roomName:
             return roomList[room]
@@ -163,8 +169,29 @@ def displayCharStatus(characterList):
 
 def changePlayerRoom(listOfRooms):
     """Change's MacReady's (player's) room."""
+    #Gets input and corrects it for spelling errors
     targetRoom= str(input("Where would you like to move to? "))
+    '''if targetRoom.upper() == "DINING ROOM":
+        targetRoom = "Dining Room"
+    if targetRoom.upper() == "BLAIR'S ROOM":
+        targetRoom = "Blair's Room"
+    if targetRoom.upper() == "EXPERIMENT ROOM":
+        targetRoom = "Experiment Room"
+    if targetRoom.upper() == "KITCHEN":
+        targetRoom = "Kitchen"
+    if targetRoom.upper() == "DOG ROOM":
+        targetRoom = "Dog Room"
+    if targetRoom.upper() == "HANGAR":
+        targetRoom = "Hangar"
+    if targetRoom.upper() == "FOYER":
+        targetRoom = "Foyer"
+    if targetRoom.upper() == "THAWING ROOM":
+        targetRoom = "Thawing Room"
+    else:
+        print("I couldn't understand that...")
+        return False'''
     changeRoom("MacReady", targetRoom, listOfRooms)
+    return True
 
 def setup(listOfRooms):
     """Puts Blair and Macready (player) into their start room"""
@@ -183,24 +210,80 @@ from the others, and will help you identify who might be infected. But be \
 warned... Not everything is as it seems!')
     print()
     start = input("Press enter to start!")
+    print("---------------------")
     if start == "":
         return
     else:
         return
 
-def turn(listOfRooms):
+def checkMove(currentRoom, nextRoom):
+    """Takes a room object, then checks to see what other rooms are accessible from that room"""
+    if currentRoom.getName() == "Blair's Room":
+        if nextRoom.getName() == "Experiment Room" or nextRoom.getName() == "Dining Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Experiment Room":
+        if nextRoom.getName() == "Blair's Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Dining Room":
+        if nextRoom.getName() == "Blair's Room" or nextRoom.getName() == "Kitchen" or nextRoom.getName() == "Hangar" or nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False
+    return True
+    if currentRoom.getName() == "Hangar":
+        if nextRoom.getName() == "Dining Room" or nextRoom.getName() == "Dog Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Dog Room":
+        if nextRoom.getName() == "Hangar":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Thawing Room":
+        if nextRoom.getName() == "Hangar" or nextRoom.getName() == "Foyer" or nextRoom.getName() == "Kitchen":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Kitchen":
+        if nextRoom.getName() == "Dining Room" or nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Foyer":
+        if nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False  
+        
+def turn(listOfRooms, listOfChars):
     """Controls the events that happen each turn."""
+    rooms = listOfRooms
+    chars = listOfChars
+    stateLocation('MacReady', rooms)
     print()
-    stateLocation('MacReady', listOfRooms)
     userInput = str(input("What would you like to do? "))
     command = userInput.upper()
     if command == 'MOVE':
-        changePlayerRoom(listOfRooms)
+        return changePlayerRoom(rooms)
+    if command == "WAIT":
+        print("MacReady waited around a while.")
+        return True
     if command == 'STATUS':
         print()
-        displayRoomStatus(listOfRooms)
+        displayRoomStatus(rooms)
+        return False
     if command == 'HELP':
-        print("Commands are move, status, and help.")
+        print("Commands are move, wait, status, and help.")
+        return False
+    if command != "MOVE" or "STATUS" or "HELP":
+        print("Commands are move, wait, status and help. Try again.")
+        return False
+            
 
 def stateLocation(playerName, listOfRooms):
     """Gives the player's location"""
@@ -219,9 +302,13 @@ def main():
     permCharList = assignCharsToRooms(charObjs, roomObjs)
 
     setup(roomObjs)
-    
+
+    turnCount = 0
     while True:
-        turn(roomObjs)
+        print()
+        print("Turn "+str(turnCount))
+        print()
+        turn(roomObjs, permCharList)
     
 if __name__ == '__main__':
     main()
