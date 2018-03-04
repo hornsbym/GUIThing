@@ -152,19 +152,20 @@ class Control(object):
     def changePlayerRoom(self):
         """Moves the player object to a user-specified room"""
         destination = str(input("Name a room to move to: "))
-        if self.checkMove(self.findCharObj("MacReady").getRoomName(), destination) == False:
+        userInput = cleanInput(destination)
+        if self.checkMove(self.findCharObj("MacReady").getRoomName(), userInput) == False:
             print("You can't move there!")
             return False
         else:
-            if destination != "Blair's Room":
-                self.changeRoom("MacReady", destination)
+            if userInput != "Blair's Room":
+                self.changeRoom("MacReady", userInput)
                 self.findCharObj("MacReady").addVisited()
-                print("You moved to the " + destination + ".")
+                print("You moved to the " + userInput + ".")
                 print(self.findCharObj("MacReady").getVisited())
             else:
-                self.changeRoom("MacReady", destination)
+                self.changeRoom("MacReady", userInput)
                 self.findCharObj("MacReady").addVisited()
-                print("You moved to " + destination + ".")
+                print("You moved to " + userInput + ".")
                 print(self.findCharObj("MacReady").getVisited())
             return True
     def infect(self, characterName):
@@ -224,25 +225,29 @@ class Control(object):
 def cleanInput(string):
     """Takes user input and normalizes it."""
     cleanString = string.upper()
-    print(cleanString)
-    if str(cleanString) == "BLAIR'S ROOM" or "BLAIRS ROOM":
-        return "Blair's Room"
+    newString = ""
+    if cleanString == "BLAIR'S ROOM" or cleanString == "BLAIRS ROOM":
+        newString = "Blair's Room"
     elif cleanString == "EXPERIMENT ROOM":
-        return "Experiment Room"
-    elif str(cleanString) == "DINING ROOM":
-        return "Dining Room"
+        newString = "Experiment Room"
+    elif cleanString == "DINING ROOM":
+        newString = "Dining Room"
     elif cleanString == "HANGAR":
-        return "Hangar"
-    elif cleanString == "DOG ROOM" or "DOGS ROOM" or "DOG'S ROOM":
-        return "Dog Room"
+        newString = "Hangar"
+    elif cleanString == "DOG ROOM" or cleanString == "DOGS ROOM" or cleanString == "DOG'S ROOM":
+        newString = "Dog Room"
     elif cleanString == "THAWING ROOM":
-        return "Thawing Room"
+        newString = "Thawing Room"
     elif cleanString == "FOYER":
-        return "Foyer"
+        newString = "Foyer"
     elif cleanString == "SECURITY ROOM":
-        return "Security Room"
+        newString = "Security Room"
     elif cleanString == "KITCHEN":
-        return "Kitchen"
+        newString = "Kitchen"
+    else:
+        print("Check spelling and try again!")
+        return
+    return newString
         
 def assignCharsToRooms(characterList, roomList):
     """Assigns every character to a room."""
@@ -287,8 +292,12 @@ def turn(g):
         if move == True:
             g.incTurnCount()
             print()
-            print("MacReady is in the " + g.findCharObj("MacReady").getRoomName() + ".")
-            return
+            if g.findCharObj("MacReady").getRoomName() != "Blair's Room":
+                print("MacReady is in the " + g.findCharObj("MacReady").getRoomName() + ".")
+                return
+            else:
+                print("MacReady is in " + g.findCharObj("MacReady").getRoomName() + ".")
+                return
         if move == False:
             return
     if command == "WAIT":
@@ -328,13 +337,6 @@ def main():
     print(g.findCharObj("Blair"))
     print()
     print(g.findRoomObj("Blair's Room"))
-    print("---------(Changing the player's room)--------")
-    print(g.findCharObj("MacReady"))
-    print()
-    #g.changePlayerRoom()
-    print("<Move player>")
-    print()
-    print(g.findCharObj("MacReady"))
     print("----------(Infects a character)---------")
     print(g.findCharObj('Childs'))
     print()
