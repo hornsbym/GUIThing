@@ -58,6 +58,50 @@ def changePlayerRoom(listOfRooms):
     changeRoom("MacReady", targetRoom, listOfRooms)
     return True
 
+def checkMove(currentRoom, nextRoom):
+    """Takes a room object, then checks to see what other rooms are accessible from that room"""
+    if currentRoom.getName() == "Blair's Room":
+        if nextRoom.getName() == "Experiment Room" or nextRoom.getName() == "Dining Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Experiment Room":
+        if nextRoom.getName() == "Blair's Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Dining Room":
+        if nextRoom.getName() == "Blair's Room" or nextRoom.getName() == "Kitchen" or nextRoom.getName() == "Hangar" or nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False
+    return True
+    if currentRoom.getName() == "Hangar":
+        if nextRoom.getName() == "Dining Room" or nextRoom.getName() == "Dog Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Dog Room":
+        if nextRoom.getName() == "Hangar":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Thawing Room":
+        if nextRoom.getName() == "Hangar" or nextRoom.getName() == "Foyer" or nextRoom.getName() == "Kitchen":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Kitchen":
+        if nextRoom.getName() == "Dining Room" or nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False
+    if currentRoom.getName() == "Foyer":
+        if nextRoom.getName() == "Thawing Room":
+            return True
+        else:
+            return False  
+
 def stateLocation(playerName, listOfRooms):
     """Gives the player's location"""
     player = findCharObj(playerName, findCharacterRoom(playerName, listOfRooms))
