@@ -13,7 +13,6 @@ import random
 
 charNames = ['Fuches','Windows','Copper','Childs',"Barclay","Bennings","Clarke","Norris","Van Wall","Connant"]
 roomNames = ['Kitchen', 'Experiment Room', 'Hangar', 'Dining Room', "Blair's Room", "Foyer", "Dog Room","Thawing Room","Security Room"]
-roomDescriptions = ["<Insert room description>"]
 
 class Person(object):
     """Parent class for every person, including the player ."""
@@ -114,6 +113,7 @@ class Control(object):
         self._roomList = roomList
         self._charList = charList
         self._turnCount = 1
+        self._roomDescriptions = ["<Insert room description>"]
     def incTurnCount(self):
         """Increments the turn count by one."""
         self._turnCount += 1
@@ -157,6 +157,8 @@ class Control(object):
             print("You can't move there!")
             return False
         else:
+            if self.findCharObj("MacReady").getRoomName() not in self.findCharObj("MacReady").getVisited():
+                print(str(self._roomDescriptions[0]))
             if userInput != "Blair's Room":
                 self.changeRoom("MacReady", userInput)
                 self.findCharObj("MacReady").addVisited()
