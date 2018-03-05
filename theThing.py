@@ -10,102 +10,11 @@ and will help you identify who might be infected. But be warned... Not everythin
 is as it seems!
 """
 import random
+from person import Person, MacReady, Blair
+from room import Room
 
 charNames = ['Fuches','Windows','Copper','Childs',"Barclay","Bennings","Clarke","Norris","Van Wall","Connant"]
 roomNames = ['Kitchen', 'Experiment Room', 'Hangar', 'Dining Room', "Blair's Room", "Foyer", "Dog Room","Thawing Room","Security Room"]
-
-class Person(object):
-    """Parent class for every person, including the player ."""
-    def __init__(self, personName, infectedStatus):
-        self._name = personName
-        self._infectedStatus = infectedStatus
-        self._alive = True
-        self._currentRoom = None
-    def __str__(self):
-        """Returns string representation of the people."""
-        return "Name: " + self._name + '\n' + 'Infected Status: ' + \
-               str(self._infectedStatus) + "\n" + 'Current room: ' + \
-               self._currentRoom.getName() + "\n" +"Alive? " + str(self._alive)
-    def getName(self):
-        """Returns a string representation of the character's name."""
-        return str(self._name)
-    def setCurrentRoom(self, room):
-        """Sets the character's current room"""
-        self._currentRoom = room
-    def getCurrentRoom(self):
-        """Returns the room object the character is currently in."""
-        return self._currentRoom
-    def getRoomName(self):
-        """Returns only the name of the character's room."""
-        return self._currentRoom.getName()
-    def setInfectedStatus(self):
-        """Turns a person't infected status to true; 'Infects' them."""
-        self._infectedStatus = True
-    def getInfectedStatus(self):
-        """Returns True if person is infected, False if not."""
-        return self._infectedStatus
-    def isAlive(self):
-        """Checks if a person is still alive."""
-        return self._alive
-    def kill(self):
-        "Turns a person's self._alive status to false."
-        self._alive = False
-        
-class MacReady(Person):
-    """Player controlled person instance."""
-    def __init__(self):
-        self._name = "MacReady"
-        self._infectedStatus = False
-        self._visitedRooms = []
-        self._alive = True
-    def addVisited(self):
-        """Adds the current room to the visited rooms list, if it has not been visited already."""
-        if self.getRoomName() not in self._visitedRooms:
-            self._visitedRooms.append(self.getRoomName())
-    def getVisited(self):
-        """Returns list of visted rooms."""
-        return self._visitedRooms
-
-class Blair(Person):
-    """Special character instance; provides guidance for the playable character."""
-    def __init__(self):
-        self._name = "Blair"
-        self._infectedStatus = False
-        self._alive = True
-
-class Room(object):
-    """Represents the basic outline of a room."""
-    def __init__(self, roomName):
-        self._name = roomName
-        self._occupants = []
-    def __str__(self):
-        """Returns string representation of the room objects."""
-        return self._name + '\n' + str(self.occupantNames())
-    def getName(self):
-        """Returns the name of the room."""
-        return str(self._name)
-    def occupantNames(self):
-        """Returns a list of names of all the characters in the room."""
-        occupantNames = []
-        for x in range(len(self._occupants)):
-            occupantNames.append(self._occupants[x].getName())
-        return str(occupantNames)
-    def acceptChar(self, char):
-        """Adds a character to the room."""
-        self._occupants.append(char)
-    def removeOccupant(self, char):
-        """Removes a character from the room."""
-        if char in self._occupants:
-            self._occupants.remove(char)
-        return
-    def getChar(self, characterName):
-        """Returns a specified character within the room."""
-        char = characterName
-        for x in range(len(self._occupants)):
-            if char == self._occupants[x].getName():
-                return self._occupants[x]
-        else:
-            return char + " is not in the room."
 
 class Control(object):
     """Instance that controls the game mechanics."""
@@ -149,12 +58,11 @@ class Control(object):
         roomObj.removeOccupant(charObj)
         charObj.setCurrentRoom(targetRoomObj)
         targetRoomObj.acceptChar(charObj)
-    def changePlayerRoom(self):
+    def changePlayerRoom(self, room):
         """Moves the player object to a user-specified room"""
-        destination = str(input("Name a room to move to: "))
-        userInput = cleanInput(destination)
+        userInput = cleanInput(room)
         if self.checkMove(self.findCharObj("MacReady").getRoomName(), userInput) == False:
-            print("You can't move there!")
+            #print("You can't move there!")
             return False
         else:
             if self.findCharObj("MacReady").getRoomName() not in self.findCharObj("MacReady").getVisited():
@@ -226,20 +134,32 @@ class Control(object):
 
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
+    twoWords = [""]
     command = string.split(" ")
-    print("Split command: "+str(command))
+    if (len(command) == 1):
+        return command
     if command[1] == 'to':
-        verb = command[0]
-        target = " ".join([command[2], command[3]])
-        newList = [verb, target]
-        print("Command: " + newList[0])
-        print("The rest: " + newList[1])
+        if len(command) == 3:
+            verb = command[0]
+            target = command[2]
+            newList = [verb, target]
+            return newList
+        else:
+            verb = command[0]
+            target = " ".join([command[2], command[3]])
+            newList = [verb, target]
+            return newList
     else:
-        verb = command[0]
-        target = " ".join([command[1], command[2]])
-        newList = [verb, target]
-        print("Command: " + newList[0])
-        print("The rest: " + newList[1])
+        if len(command) == 2:
+            verb = command[0]
+            target = command[1]
+            newList = [verb, target]
+            return newList
+        else:
+            verb = command[0]
+            target = " ".join([command[1], command[2]])
+            newList = [verb, target]
+            return newList
     
 def cleanInput(string):
     """Takes user input and normalizes it."""
@@ -264,8 +184,8 @@ def cleanInput(string):
     elif cleanString == "KITCHEN":
         newString = "Kitchen"
     else:
-        print("Check spelling and try again!")
-        return
+        print("Check command and try again")
+        return ""
     return newString
         
 def assignCharsToRooms(characterList, roomList):
@@ -305,9 +225,13 @@ def createRoomObjs(listOfRoomNames):
 def turn(g):
     """Controls the events that happen each turn."""
     userInput = str(input("What would you like to do? "))
-    command = userInput.upper()
+    userInput = parse(userInput)
+    command = userInput[0].upper()
     if command == 'MOVE':
-        move = g.changePlayerRoom()
+        if len(userInput) < 2:
+            print("Check command and try again. Make sure the action preceeds the destination.")
+            return
+        move = g.changePlayerRoom(userInput[1])
         if move == True:
             g.incTurnCount()
             print()
@@ -363,20 +287,13 @@ def main():
     print(g.findCharObj('Childs'))
     print("----------(Find the player)----------")
     g.showPlayer()
-    print("----------(Parser)---------")
-    print("String: Move Blair's Room")
-    parse("Move Blair's Room")
-    print()
-    print("String: Move to Blair's Room")
-    parse("Move to Blair's Room")
-    '''
     print("----------(Test game)----------")
     print("The Thing")
     g.findCharObj("MacReady").addVisited()
     while g.checkPlayer() == True:
         print()
         print("Turn " + str(g.getTurnCount()))
-        turn(g)'''
+        turn(g)
 
 if __name__ == '__main__':
     main()
