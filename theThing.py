@@ -223,6 +223,23 @@ class Control(object):
             if nextRoomName not in kitchen: return False
             else: return True
         return True
+
+def parse(string):
+    """Parses through a string, returns a list with a command and target."""
+    command = string.split(" ")
+    print("Split command: "+str(command))
+    if command[1] == 'to':
+        verb = command[0]
+        target = " ".join([command[2], command[3]])
+        newList = [verb, target]
+        print("Command: " + newList[0])
+        print("The rest: " + newList[1])
+    else:
+        verb = command[0]
+        target = " ".join([command[1], command[2]])
+        newList = [verb, target]
+        print("Command: " + newList[0])
+        print("The rest: " + newList[1])
     
 def cleanInput(string):
     """Takes user input and normalizes it."""
@@ -346,13 +363,20 @@ def main():
     print(g.findCharObj('Childs'))
     print("----------(Find the player)----------")
     g.showPlayer()
+    print("----------(Parser)---------")
+    print("String: Move Blair's Room")
+    parse("Move Blair's Room")
+    print()
+    print("String: Move to Blair's Room")
+    parse("Move to Blair's Room")
+    '''
     print("----------(Test game)----------")
     print("The Thing")
     g.findCharObj("MacReady").addVisited()
     while g.checkPlayer() == True:
         print()
         print("Turn " + str(g.getTurnCount()))
-        turn(g)
+        turn(g)'''
 
 if __name__ == '__main__':
     main()
