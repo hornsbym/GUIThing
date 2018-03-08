@@ -286,6 +286,7 @@ def main():
     g.infect("Childs")
     print(g.findCharObj('Childs'))
     print("----------(Find the player)----------")
+
     g.showPlayer()
     print("----------(Test game)----------")
     print("The Thing")
