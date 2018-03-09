@@ -131,6 +131,23 @@ class Control(object):
             if nextRoomName not in kitchen: return False
             else: return True
         return True
+    def randomize(self):
+        """Tries to move people from one room to the next, randomly."""
+        noMove = ["Blair","MacReady"]
+        for char in range(len(self._charList)):
+            charName = self._charList[char].getName()
+            if charName not in noMove and self.isAlive(charName):
+                currentRoom = self.findCharObj(charName).getRoomName()
+                nextRoom = random.choice(self._roomList).getName()
+                check = self.checkMove(currentRoom, nextRoom)
+                print(charName+" from the "+currentRoom+" to the "+nextRoom+".")
+                print("Possible? "+str(check))
+                print()
+                if check ==True:
+                    self.changeRoom(charName, nextRoom)
+    def isAlive(self, characterName):
+        """Checks if a character is alive or not; True for alive, False for dead."""
+        return self.findCharObj(characterName).isAlive()
 
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
@@ -268,33 +285,42 @@ def main():
     permCharList = assignCharsToRooms(charObjs, roomObjs)
     g = Control(roomObjs, permCharList)
     
-    print("---------(Setting up game)---------")
+    #print("---------(Setting up game)---------")
     g.setupGame()
+    #g.showRooms()
+    #print("---------(Finding a character)---------")
+    #print(g.findCharObj("Blair"))
+    #print("---------(Finding a room)----------")
+    #print(g.findRoomObj("Blair's Room"))
+    #print("---------(Changing a character's room)---------")
+    #g.changeRoom("Blair", "Blair's Room")
+    #print(g.findCharObj("Blair"))
+    #print()
+    #print(g.findRoomObj("Blair's Room"))
+    print("----------(Kills a couple characters)---------")
+    g.findCharObj("Fuches").kill()
+    g.findCharObj("Windows").kill()
+    g.findCharObj("Childs").kill()
+    print("----------(Status before randomize)-----------")
     g.showRooms()
-    print("---------(Finding a character)---------")
-    print(g.findCharObj("Blair"))
-    print("---------(Finding a room)----------")
-    print(g.findRoomObj("Blair's Room"))
-    print("---------(Changing a character's room)---------")
-    g.changeRoom("Blair", "Blair's Room")
-    print(g.findCharObj("Blair"))
-    print()
-    print(g.findRoomObj("Blair's Room"))
-    print("----------(Infects a character)---------")
-    print(g.findCharObj('Childs'))
-    print()
-    g.infect("Childs")
-    print(g.findCharObj('Childs'))
-    print("----------(Find the player)----------")
-
-    g.showPlayer()
-    print("----------(Test game)----------")
-    print("The Thing")
-    g.findCharObj("MacReady").addVisited()
-    while g.checkPlayer() == True:
-        print()
-        print("Turn " + str(g.getTurnCount()))
-        turn(g)
+    print("----------(Randomize)---------")
+    g.randomize()
+    print("----------(Status after randomize)-----------")
+    g.showRooms()
+    #print("----------(Infects a character)---------")
+    #print(g.findCharObj('Childs'))
+    #print()
+    #g.infect("Childs")
+    #print(g.findCharObj('Childs'))
+    #print("----------(Find the player)----------")
+    #g.showPlayer()
+    #print("----------(Test game)----------")
+    #print("The Thing")
+    #g.findCharObj("MacReady").addVisited()
+    #while g.checkPlayer() == True:
+    #    print()
+    #    print("Turn " + str(g.getTurnCount()))
+    #    turn(g)
 
 if __name__ == '__main__':
     main()
