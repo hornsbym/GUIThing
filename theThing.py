@@ -58,11 +58,11 @@ class Control(object):
         roomObj.removeOccupant(charObj)
         charObj.setCurrentRoom(targetRoomObj)
         targetRoomObj.acceptChar(charObj)
-    def changePlayerRoom(self, room):
+    def changePlayerRoom(self, roomName):
         """Moves the player object to a user-specified room"""
-        userInput = cleanInput(room)
+        userInput = cleanInput(roomName)
         if self.checkMove(self.findCharObj("MacReady").getRoomName(), userInput) == False:
-            #print("You can't move there!")
+            print("You can't move there!")
             return False
         else:
             if self.findCharObj("MacReady").getRoomName() not in self.findCharObj("MacReady").getVisited():
@@ -140,9 +140,6 @@ class Control(object):
                 currentRoom = self.findCharObj(charName).getRoomName()
                 nextRoom = random.choice(self._roomList).getName()
                 check = self.checkMove(currentRoom, nextRoom)
-                print(charName+" from the "+currentRoom+" to the "+nextRoom+".")
-                print("Possible? "+str(check))
-                print()
                 if check ==True:
                     self.changeRoom(charName, nextRoom)
     def isAlive(self, characterName):
@@ -244,6 +241,8 @@ def turn(g):
     userInput = str(input("What would you like to do? "))
     userInput = parse(userInput)
     command = userInput[0].upper()
+    MacReady = g.findCharObj("MacReady")
+    occupants = g.findRoomObj(MacReady.getRoomName()).occupantNames()
     if command == 'MOVE':
         if len(userInput) < 2:
             print("Check command and try again. Make sure the action preceeds the destination.")
@@ -252,17 +251,23 @@ def turn(g):
         if move == True:
             g.incTurnCount()
             print()
-            if g.findCharObj("MacReady").getRoomName() != "Blair's Room":
-                print("MacReady is in the " + g.findCharObj("MacReady").getRoomName() + ".")
+            if MacReady.getRoomName() != "Blair's Room":
+                print("MacReady is in the " + MacReady.getRoomName() + ".")
+                print(str(occupants)+" are in the room.")
+                g.randomize()
                 return
             else:
-                print("MacReady is in " + g.findCharObj("MacReady").getRoomName() + ".")
+                print("MacReady is in " + MacReady.getRoomName() + ".")
+                print(str(occupants)+" are in the room.")
+                g.randomize()
                 return
         if move == False:
             return
     if command == "WAIT":
         g.incTurnCount()
         print("MacReady waited around a while.")
+        print(str(occupants)+" are in the room.")
+        g.randomize()
         return
     if command == 'STATUS':
         print()
@@ -284,9 +289,9 @@ def main():
     charObjs = createCharObjs(charNames, roomObjs)
     permCharList = assignCharsToRooms(charObjs, roomObjs)
     g = Control(roomObjs, permCharList)
+    g.setupGame()
     
     #print("---------(Setting up game)---------")
-    g.setupGame()
     #g.showRooms()
     #print("---------(Finding a character)---------")
     #print(g.findCharObj("Blair"))
@@ -297,16 +302,16 @@ def main():
     #print(g.findCharObj("Blair"))
     #print()
     #print(g.findRoomObj("Blair's Room"))
-    print("----------(Kills a couple characters)---------")
-    g.findCharObj("Fuches").kill()
-    g.findCharObj("Windows").kill()
-    g.findCharObj("Childs").kill()
-    print("----------(Status before randomize)-----------")
-    g.showRooms()
-    print("----------(Randomize)---------")
-    g.randomize()
-    print("----------(Status after randomize)-----------")
-    g.showRooms()
+    #print("----------(Kills a couple characters)---------")
+    #g.findCharObj("Fuches").kill()
+    #g.findCharObj("Windows").kill()
+    #g.findCharObj("Childs").kill()
+    #print("----------(Status before randomize)-----------")
+    #g.showRooms()
+    #print("----------(Randomize)---------")
+    #g.randomize()
+    #print("----------(Status after randomize)-----------")
+    #g.showRooms()
     #print("----------(Infects a character)---------")
     #print(g.findCharObj('Childs'))
     #print()
@@ -314,13 +319,13 @@ def main():
     #print(g.findCharObj('Childs'))
     #print("----------(Find the player)----------")
     #g.showPlayer()
-    #print("----------(Test game)----------")
-    #print("The Thing")
-    #g.findCharObj("MacReady").addVisited()
-    #while g.checkPlayer() == True:
-    #    print()
-    #    print("Turn " + str(g.getTurnCount()))
-    #    turn(g)
+    print("----------(Test game)----------")
+    print("The Thing")
+    g.findCharObj("MacReady").addVisited()
+    while g.checkPlayer() == True:
+        print()
+        print("Turn " + str(g.getTurnCount()))
+        turn(g)
 
 if __name__ == '__main__':
     main()
