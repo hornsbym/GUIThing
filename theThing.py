@@ -70,12 +70,12 @@ class Control(object):
             if userInput != "Blair's Room":
                 self.changeRoom("MacReady", userInput)
                 self.findCharObj("MacReady").addVisited()
-                print("You moved to the " + userInput + ".")
+                print("Moved to the " + userInput + ".")
                 print(self.findCharObj("MacReady").getVisited())
             else:
                 self.changeRoom("MacReady", userInput)
                 self.findCharObj("MacReady").addVisited()
-                print("You moved to " + userInput + ".")
+                print("Moved to " + userInput + ".")
                 print(self.findCharObj("MacReady").getVisited())
             return True
     def infect(self, characterName):
@@ -252,12 +252,10 @@ def turn(g):
             g.incTurnCount()
             print()
             if MacReady.getRoomName() != "Blair's Room":
-                print("MacReady is in the " + MacReady.getRoomName() + ".")
                 print(str(occupants)+" are in the room.")
                 g.randomize()
                 return
             else:
-                print("MacReady is in " + MacReady.getRoomName() + ".")
                 print(str(occupants)+" are in the room.")
                 g.randomize()
                 return

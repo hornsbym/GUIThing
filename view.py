@@ -14,19 +14,19 @@ class Window(Frame):
         self.master.title("The Thing")
         self.grid()
         
-        #self.came = Control()
+        #self._game = Control()
 
-        self._outputLabel = Label(self, anchor=W, height=8, width=58, text="Output", bg='white')
+        self._outputLabel = Label(self, text="Output", relief="raised", anchor=W, height=8, width=50, bg='white')
         self._outputLabel.grid(row=0, column=1, rowspan= 3, columnspan=2, pady=10, padx = 5)
 
         self._inputLabel = Label(self, text = "Command: ", fg="white", bg="gray")
         self._inputLabel.grid(row=3, column=0)
 
         self._inputVar = StringVar()
-        self._inputField = Entry(self, width=58, textvariable=self._inputVar)
+        self._inputField = Entry(self, width=50, textvariable=self._inputVar)
         self._inputField.grid(row=3, column=1, pady=5)
 
-        self._submitButton = Button(self, text="Submit")
+        self._submitButton = Button(self, text="Submit", command=self.submit())
         self._submitButton.grid(row=3, column=2, padx=3)
 
         self._turnLabel = Label(self, text="Turn #", bg="gray", fg="white")
@@ -37,5 +37,11 @@ class Window(Frame):
 
         self._mapButton = Button(self, text="Map")
         self._mapButton.grid(row=2, column=0)
+
+    def submit(self):
+        """Takes text from the entry bar, sends it to the control, then displays it on the output label."""
+        command = self._inputVar.get()
+        self._outputLabel["text"] = command 
+        
 w = Window()
 
