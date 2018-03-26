@@ -145,7 +145,11 @@ class Control(object):
     def isAlive(self, characterName):
         """Checks if a character is alive or not; True for alive, False for dead."""
         return self.findCharObj(characterName).isAlive()
-
+    def thingsAttack(self):
+        """Called every turn, allows infected characters to attack."""
+        for room in self._roomList:
+            self._roomList[x].thingsAttack()
+        
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
     twoWords = [""]

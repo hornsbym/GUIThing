@@ -37,3 +37,14 @@ class Room(object):
                 return self._occupants[x]
         else:
             return char + " is not in the room."
+    def thingsAttack(self):
+        """Checks for infected characters in the room. Each infected character has a 10% chance to attack."""
+        if len(self._roomList) == 0:
+            return
+        else:
+            for char in self._roomList:
+                if self._roomList[char].getInfectedStatus
+
+
+
+            
