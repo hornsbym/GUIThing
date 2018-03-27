@@ -3,6 +3,8 @@ person.py
 File containing all person classes for theThing.py program.
 Author: Mitchell Hornsby
 """
+import random
+
 class Person(object):
     """Parent class for every person, including the player ."""
     def __init__(self, personName, infectedStatus):
@@ -37,8 +39,11 @@ class Person(object):
         """Checks if a person is still alive."""
         return self._alive
     def kill(self):
-        "Turns a person's self._alive status to false."
+        """Turns a person's self._alive status to false."""
         self._alive = False
+    def attack(self, human):
+        """Changes a human's status to false (kills them)."""
+        human.kill()
         
 class MacReady(Person):
     """Player controlled person instance."""

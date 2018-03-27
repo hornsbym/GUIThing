@@ -30,14 +30,33 @@ class Control(object):
         """Returns the current turn count."""
         return self._turnCount
     def setupGame(self):
-        """Puts player and Blair in Blair's Room."""
+        """Puts player and Blair in Blair's Room; infects between 1-3 other characters."""
         self.changeRoom("MacReady", "Blair's Room")
-        self.changeRoom("Blair", "Blair's Room")   
+        self.changeRoom("Blair", "Blair's Room")
+        infectedOne = random.choice(self._charList)
+        infectedTwo = random.choice(self._charList)
+        infectedThree = random.choice(self._charList)
+        print(infectedOne.getName())
+        print(infectedTwo.getName())
+        print(infectedThree.getName())
+        if infectedOne.getName() != "Blair" and infectedOne.getName() != "MacReady":
+            infectedOne.setInfectedStatus()
+        if infectedTwo.getName() != "Blair" and infectedTwo.getName() != "MacReady":
+            infectedTwo.setInfectedStatus()
+        if infectedThree.getName() != "Blair" and infectedThree.getName() != "MacReady":
+            infectedThree.setInfectedStatus()
     def showRooms(self):
         """Displays each room in the game along with its occupants"""
         for x in range(len(self._roomList)):
             print(self._roomList[x])
             print()
+    def showInfectedChars(self):
+        """Displays each player, their room, and their infected status."""
+        infected = []
+        for x in range(len(self._charList)):
+            if self._charList[x].getInfectedStatus() == True:
+                infected.append(self._charList[x].getName())
+        return infected
     def findCharObj(self, characterName):
         """Finds the object bearing the character name in the
            list of characters; returns a character object."""
@@ -147,8 +166,8 @@ class Control(object):
         return self.findCharObj(characterName).isAlive()
     def thingsAttack(self):
         """Called every turn, allows infected characters to attack."""
-        for room in self._roomList:
-            self._roomList[x].thingsAttack()
+        for room in range(len(self._roomList)):
+            self._roomList[room].thingsAttack()
         
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
@@ -265,6 +284,17 @@ def turn(g):
                 return
         if move == False:
             return
+    if command == "KILL":
+        target = g.findCharObj(userInput[1])
+        macReadyRoom = MacReady.getRoomName()
+        if target.getName() in occupants:
+            print("MacReady torched " + target.getName() + ".")
+            target.kill()
+            print(target)
+            return
+        else:
+            print("Make sure target is in the room.")
+            return
     if command == "WAIT":
         g.incTurnCount()
         print("MacReady waited around a while.")
@@ -322,12 +352,18 @@ def main():
     #print("----------(Find the player)----------")
     #g.showPlayer()
     print("----------(Test game)----------")
-    print("The Thing")
     g.findCharObj("MacReady").addVisited()
     while g.checkPlayer() == True:
         print()
         print("Turn " + str(g.getTurnCount()))
         turn(g)
-
+    #print("----------(Things Attack)----------")
+    #turn = 1
+    #while len(g.showInfectedChars()) != 12:        
+    #    g.thingsAttack()
+    #    g.randomize()
+    #    turn += 1
+    #print(turn)
+        
 if __name__ == '__main__':
     main()

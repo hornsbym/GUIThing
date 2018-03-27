@@ -3,6 +3,7 @@ room.py
 File contains the room class to be used by the program theThing.py
 Author: Mitchell Hornsby
 """
+import random
 
 class Room(object):
     """Represents the basic outline of a room."""
@@ -39,11 +40,27 @@ class Room(object):
             return char + " is not in the room."
     def thingsAttack(self):
         """Checks for infected characters in the room. Each infected character has a 10% chance to attack."""
-        if len(self._roomList) == 0:
+        if len(self._occupants) == 0:
             return
         else:
-            for char in self._roomList:
-                if self._roomList[char].getInfectedStatus
+            personOne = random.choice(self._occupants)
+            personTwo = random.choice(self._occupants)
+            if personOne is personTwo:
+                return
+            elif personOne.getInfectedStatus() == personTwo.getInfectedStatus():
+                return
+            elif personOne.getInfectedStatus() == True:
+                return personTwo.setInfectedStatus()
+            elif personTwo.getInfectedStatus() == True:
+                return personOne.setInfectedStatus()
+            '''for char in self._roomList:
+                if self._roomList[char].getInfectedStatus() == True:
+                    for target in self._roomList:
+                        if self._roomList[target] == 
+                if self._roomList[char].getInfectedStatus() == False:
+                    return'''
+                        
+                    
 
 
 
