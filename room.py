@@ -21,7 +21,7 @@ class Room(object):
         occupantNames = []
         for x in range(len(self._occupants)):
             occupantNames.append(self._occupants[x].getName())
-        return str(occupantNames)
+        return occupantNames
     def acceptChar(self, char):
         """Adds a character to the room."""
         self._occupants.append(char)

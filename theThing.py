@@ -23,6 +23,13 @@ class Control(object):
         self._charList = charList
         self._turnCount = 1
         self._roomDescriptions = ["<Insert room description>"]
+    def getInfectedCount(self):
+        """Returns how many characters are infected."""
+        count = 0
+        for char in range(len(self._charList)):
+            if self._charList[char].getInfectedStatus() == True:
+                count += 1
+        return count
     def incTurnCount(self):
         """Increments the turn count by one."""
         self._turnCount += 1
@@ -56,7 +63,21 @@ class Control(object):
         for x in range(len(self._charList)):
             if self._charList[x].getInfectedStatus() == True:
                 infected.append(self._charList[x].getName())
-        return infected
+        print(infected)
+        print()
+    def showCharsInRoom(self):
+        """Prints all characters in the room."""
+        playerRoom = self.findRoomObj(self.findCharObj('MacReady').getRoomName())
+        for char in range(len(playerRoom.occupantNames())):
+            charName = playerRoom.occupantNames()[char]
+            charStatus = self.findCharObj(charName).isAlive()
+            if charName != "MacReady" and charStatus == True:  
+                print(charName + " is in the room.")
+        for char in range(len(playerRoom.occupantNames())):
+            charName = playerRoom.occupantNames()[char]
+            charStatus = self.findCharObj(charName).isAlive()
+            if charName != "MacReady" and charStatus == False:
+                print(charName + "'s charred remains are in the room.")
     def findCharObj(self, characterName):
         """Finds the object bearing the character name in the
            list of characters; returns a character object."""
@@ -197,6 +218,39 @@ def parse(string):
             target = " ".join([command[1], command[2]])
             newList = [verb, target]
             return newList
+
+def fixCharName(string):
+    """Normalizes a character's name."""
+    charName = string.upper()
+    newCharName = ""
+    if charName == "BLAIR":
+        newCharName = "Blair"
+    elif charName == "MACREADY":
+        newCharName = "MacReady"
+    elif charName == "FUCHES":
+        newCharName = "Fuches"
+    elif charName == "WINDOWS":
+        newCharName = "Windows"
+    elif charName == "COPPER":
+        newCharName = "Copper"
+    elif charName == "CHILDS":
+        newCharName = "Childs"
+    elif charName == "BARCLAY":
+        newCharName = "Barclay"
+    elif charName == "BENNINGS":
+        newCharName = "Bennings"
+    elif charName == "CLARKE":
+        newCharName = "Clarke"
+    elif charName == "NORRIS":
+        newCharName = "Norris"
+    elif charName == "VAN" or charName == "VAN WALL" or charName == "VANWALL":
+        newCharName = "Van Wall"
+    elif charName == "CONNANT":
+        newCharName = "Connant"
+    else:
+        print("That's not a character.")
+        return
+    return newCharName
     
 def cleanInput(string):
     """Takes user input and normalizes it."""
@@ -271,42 +325,59 @@ def turn(g):
             print("Check command and try again. Make sure the action preceeds the destination.")
             return
         move = g.changePlayerRoom(userInput[1])
+        g.thingsAttack()
+        g.randomize()
         if move == True:
             g.incTurnCount()
             print()
             if MacReady.getRoomName() != "Blair's Room":
-                print(str(occupants)+" are in the room.")
-                g.randomize()
+                g.showCharsInRoom()
+                g.showRooms()
                 return
             else:
-                print(str(occupants)+" are in the room.")
-                g.randomize()
+                g.showCharsInRoom()
+                g.showRooms()
                 return
         if move == False:
             return
     if command == "KILL":
-        target = g.findCharObj(userInput[1])
+        char = fixCharName(userInput[1])
+        if char == None:
+            return
+        target = g.findCharObj(char)
         macReadyRoom = MacReady.getRoomName()
         if target.getName() in occupants:
             print("MacReady torched " + target.getName() + ".")
             target.kill()
-            print(target)
+            g.thingsAttack()
+            g.randomize()
+            g.incTurnCount()
             return
         else:
             print("Make sure target is in the room.")
             return
     if command == "WAIT":
         g.incTurnCount()
-        print("MacReady waited around a while.")
-        print(str(occupants)+" are in the room.")
+        g.thingsAttack()
         g.randomize()
+        print("MacReady waited around a while.")
+        g.showCharsInRoom()
         return
     if command == 'STATUS':
         print()
         g.showRooms()
-        return 
+        return
+    if command == "INFECTED":
+        print()
+        g.showInfectedChars()
+        return
+    if command == 'LOOK':
+        print()
+        g.showPlayer()
+        g.showCharsInRoom()
+        return
     if command == 'HELP':
-        print("Commands are move, wait, status, help, and quit.")
+        print("Commands are move, kill, look, wait, status, help, and quit.")
         return
     if command == "QUIT":
         g.findCharObj("MacReady").kill()
@@ -351,12 +422,6 @@ def main():
     #print(g.findCharObj('Childs'))
     #print("----------(Find the player)----------")
     #g.showPlayer()
-    print("----------(Test game)----------")
-    g.findCharObj("MacReady").addVisited()
-    while g.checkPlayer() == True:
-        print()
-        print("Turn " + str(g.getTurnCount()))
-        turn(g)
     #print("----------(Things Attack)----------")
     #turn = 1
     #while len(g.showInfectedChars()) != 12:        
@@ -364,6 +429,23 @@ def main():
     #    g.randomize()
     #    turn += 1
     #print(turn)
+    #print('----------(Fix Char Name Func)---------')
+    #childs = fixCharName('ChIlDs')
+    #print(childs)
+    #fuches = fixCharName("fuches")
+    #print(fuches)
+    #vanwall = fixCharName("VanWall")
+    #print(vanwall)
+    print("----------(Test game)----------")
+    g.findCharObj("MacReady").addVisited()
+    while g.checkPlayer() == True:
+        print()
+        print("---------<Turn " + str(g.getTurnCount()) + ">---------")
+        if g.getInfectedCount() == 1:
+            print("There is " + str(g.getInfectedCount()) + " infected people in the base.")
+        else:
+            print("There are " + str(g.getInfectedCount()) + " infected people in the base.")
+        turn(g)
         
 if __name__ == '__main__':
     main()
