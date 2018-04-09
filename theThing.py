@@ -55,8 +55,9 @@ class Control(object):
     def showRooms(self):
         """Displays each room in the game along with its occupants"""
         for x in range(len(self._roomList)):
-            print(self._roomList[x])
-            print()
+            if len(self._roomList[x].occupantNames()) > 0:
+                print(self._roomList[x])
+                print()
     def showInfectedChars(self):
         """Displays each player, their room, and their infected status."""
         infected = []
@@ -249,7 +250,7 @@ def fixCharName(string):
         newCharName = "Connant"
     else:
         print("That's not a character.")
-        return
+        return False
     return newCharName
     
 def cleanInput(string):
@@ -356,6 +357,22 @@ def turn(g):
         else:
             print("Make sure target is in the room.")
             return
+    if command == "TAKE":
+        item = userInput[1].upper()
+        if item == "BLOOD":
+            name = input("Whose blood would you like to collect?")
+            name = fixCharName(name)
+            if name == False:
+                print("Try again.")
+                return
+            else:
+                add = MacReady.addInventory(name)
+                print("add = " + str(add))
+                if add == True:
+                    print("Inventory added.")
+                if add == False: 
+                    print("Inventory full.")
+                return
     if command == "WAIT":
         g.incTurnCount()
         g.thingsAttack()
@@ -366,6 +383,7 @@ def turn(g):
     if command == 'STATUS':
         print()
         g.showRooms()
+        print("Inventory: "+str(MacReady.getInventory()))
         return
     if command == "INFECTED":
         print()
@@ -423,12 +441,14 @@ def main():
     #print("----------(Find the player)----------")
     #g.showPlayer()
     #print("----------(Things Attack)----------")
-    #turn = 1
-    #while len(g.showInfectedChars()) != 12:        
+    #testTurn = 1
+    #while g.getInfectedCount() != 12:        
     #    g.thingsAttack()
     #    g.randomize()
-    #    turn += 1
-    #print(turn)
+    #    print("Turn " + "%2s" % (str(testTurn)) + ": " + str(g.getInfectedCount()))
+    #    testTurn += 1
+    #print("___________")
+    #print(testTurn)
     #print('----------(Fix Char Name Func)---------')
     #childs = fixCharName('ChIlDs')
     #print(childs)
@@ -439,12 +459,14 @@ def main():
     print("----------(Test game)----------")
     g.findCharObj("MacReady").addVisited()
     while g.checkPlayer() == True:
-        print()
+        print('')
         print("---------<Turn " + str(g.getTurnCount()) + ">---------")
         if g.getInfectedCount() == 1:
-            print("There is " + str(g.getInfectedCount()) + " infected people in the base.")
+            print("There is " + str(g.getInfectedCount()) + " infected person in the base.")
         else:
             print("There are " + str(g.getInfectedCount()) + " infected people in the base.")
+        print('')
+        #g.showRooms()
         turn(g)
         
 if __name__ == '__main__':
