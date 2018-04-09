@@ -42,26 +42,18 @@ class Room(object):
         """Checks for infected characters in the room. Each infected character has a 10% chance to attack."""
         if len(self._occupants) == 0:
             return
-        else:
+        numOne = random.randint(1,2)
+        if numOne == 1:
             personOne = random.choice(self._occupants)
             personTwo = random.choice(self._occupants)
             if personOne is personTwo:
                 return
             elif personOne.getInfectedStatus() == personTwo.getInfectedStatus():
                 return
-            elif personOne.getInfectedStatus() == True:
+            elif personOne.getInfectedStatus() == True and personOne.isAlive() == True:
                 return personTwo.setInfectedStatus()
-            elif personTwo.getInfectedStatus() == True:
+            elif personTwo.getInfectedStatus() == True and personTwo.isAlive() == True:
                 return personOne.setInfectedStatus()
-            '''for char in self._roomList:
-                if self._roomList[char].getInfectedStatus() == True:
-                    for target in self._roomList:
-                        if self._roomList[target] == 
-                if self._roomList[char].getInfectedStatus() == False:
-                    return'''
-                        
-                    
-
-
-
-            
+        else:
+            return
+        

@@ -51,6 +51,7 @@ class MacReady(Person):
         self._name = "MacReady"
         self._infectedStatus = False
         self._visitedRooms = []
+        self._inventory = []
         self._alive = True
     def addVisited(self):
         """Adds the current room to the visited rooms list, if it has not been visited already."""
@@ -59,7 +60,17 @@ class MacReady(Person):
     def getVisited(self):
         """Returns list of visted rooms."""
         return self._visitedRooms
-
+    def addInventory(self, item):
+        """Adds an item to MacReady's inventory; returns True if the item is added."""
+        if len(self._inventory) < 5:
+            self._inventory.append(item)
+            return True
+        if len(self._inventory) >= 5:
+            return False
+    def getInventory(self):
+        """Returns items in MacReady's inventory."""
+        return self._inventory
+        
 class Blair(Person):
     """Special character instance; provides guidance for the playable character."""
     def __init__(self):
