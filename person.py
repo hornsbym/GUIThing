@@ -55,6 +55,8 @@ class MacReady(Person):
         self._alive = True
     def addVisited(self):
         """Adds the current room to the visited rooms list, if it has not been visited already."""
+        if len(self._visitedRooms) == 9:
+            return
         if self.getRoomName() not in self._visitedRooms:
             self._visitedRooms.append(self.getRoomName())
     def getVisited(self):
@@ -67,6 +69,11 @@ class MacReady(Person):
             return True
         if len(self._inventory) >= 5:
             return False
+    def popInventory(self, item):
+        """Removes & returns an item from MacReady's inventory."""
+        for i in range(len(self.getInventory())):
+            if self.getInventory()[i] == item:
+                return self._inventory.pop(i)
     def getInventory(self):
         """Returns items in MacReady's inventory."""
         return self._inventory
