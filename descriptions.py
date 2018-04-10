@@ -11,5 +11,7 @@ it sits an electric heater. A long table sits in the center of the room. Its cha
 lined up in rows. Clearly, there has recently been an important meeting here.","Kitchen":"The make-shift space barely \
 qualifies as a kitchen. It is dark, cold and dirty. Dirty plates are scattered piled on one of the wooden counters, and \
 the remains of last night's meal lay decaying on the carving table. The smell is almost too much to bear.",'Experiment \
-Room':"",'Hangar':"<Hangar description>","Foyer":"<Foyer description>","Dog Room":"<Dog Room description>","Thawing \
-Room":"<Thawing Room description>","Security Room":"<Security Room description>","Experiment Room":'<Experiment Room description>'}
+Room':"<Experiment Room Description>",'Hangar':"<Hangar description>","Foyer":"<Foyer description>","Dog Room":"<Dog Room description>","Thawing \
+Room":"<Thawing Room description>","Security Room":"<Security Room description>"}
+
+quitMessages = ["MacReady has had enough. In a fit of exasperation, he turns the flamethrower on himself..."]

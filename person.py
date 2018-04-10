@@ -30,8 +30,11 @@ class Person(object):
         """Returns only the name of the character's room."""
         return self._currentRoom.getName()
     def setInfectedStatus(self):
-        """Turns a person't infected status to true; 'Infects' them."""
+        """Turns a person's infected status to true; 'Infects' them."""
         self._infectedStatus = True
+    def setUninfected(self):
+        """Makes a char's infected status false; onlu used when an infected char is killed."""
+        self._infectedStatus = False
     def getInfectedStatus(self):
         """Returns True if person is infected, False if not."""
         return self._infectedStatus

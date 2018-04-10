@@ -23,11 +23,58 @@ class Control(object):
         self._roomList = roomList
         self._charList = charList
         self._turnCount = 1
+        self._continue = True
+    def continueGame(self):
+        """Determines whether a game can be continued."""
+        return self._continue
+    def endGame(self):
+        """Ends the game without killing MacReady."""
+        self._continue = False
+        return 
+    def printStats(self):
+        """Gets and prints end-game stats."""
+        aHumans = []
+        dHumans = []
+        aInfected = []
+        dInfected = []
+        for char in range(len(self._charList)):
+            character = self._charList[char]
+            name = character.getName()
+            if character.isAlive() == True and character.getInfectedStatus() == False:
+                aHumans.append(name)
+            if character.isAlive() == True and character.getInfectedStatus() == True:
+                aInfected.append(name)
+            if character.isAlive() == False and character.getInfectedStatus() == False:
+                dHumans.append(name)
+            if character.isAlive() == False and character.getInfectedStatus() == True:
+                dInfected.append(name)
+        print("Surviving humans: ")
+        for human in range(len(aHumans)):
+            print("     -"+aHumans[human])
+        print()
+        print("Dead humans: ")
+        for dHuman in range(len(dHumans)):
+            print("     -"+dHumans[dHuman])
+        print()
+        print("Surviving Things: ")
+        for thing in range(len(aInfected)):
+            print("     -"+aInfected[thing])
+        print()
+        print("Dead Things: ")
+        for dthing in range(len(dInfected)):
+            print("     -"+dInfected[dthing])
     def getInfectedCount(self):
         """Returns how many characters are infected."""
         count = 0
         for char in range(len(self._charList)):
             if self._charList[char].getInfectedStatus() == True:
+                count += 1
+        return count
+    def getAliveCount(self):
+        """Returns how many characters are alive."""
+        count = 0
+        for char in range(len(self._charList)):
+            if self._charList[char].isAlive() == True:
                 count += 1
         return count
     def incTurnCount(self):
@@ -47,11 +94,11 @@ class Control(object):
         print(infectedTwo.getName())
         print(infectedThree.getName())
         if infectedOne.getName() != "Blair" and infectedOne.getName() != "MacReady":
-            infectedOne.setInfectedStatus()
+            self.infect(infectedOne.getName())
         if infectedTwo.getName() != "Blair" and infectedTwo.getName() != "MacReady":
-            infectedTwo.setInfectedStatus()
+            self.infect(infectedTwo.getName())
         if infectedThree.getName() != "Blair" and infectedThree.getName() != "MacReady":
-            infectedThree.setInfectedStatus()
+            self.infect(infectedThree.getName())
     def showRooms(self):
         """Displays each room in the game along with its occupants"""
         for x in range(len(self._roomList)):
@@ -65,7 +112,6 @@ class Control(object):
             if self._charList[x].getInfectedStatus() == True:
                 infected.append(self._charList[x].getName())
         print(infected)
-        print()
     def showCharsInRoom(self):
         """Prints all characters in the room."""
         playerRoom = self.findRoomObj(self.findCharObj('MacReady').getRoomName())
@@ -79,7 +125,6 @@ class Control(object):
             charStatus = self.findCharObj(charName).isAlive()
             if charName != "MacReady" and charStatus == False:
                 print(charName + "'s charred remains are in the room.")
-        print()
     def findCharObj(self, characterName):
         """Finds the object bearing the character name in the
            list of characters; returns a character object."""
@@ -197,11 +242,20 @@ class Control(object):
     def isAlive(self, characterName):
         """Checks if a character is alive or not; True for alive, False for dead."""
         return self.findCharObj(characterName).isAlive()
+    def isInfected(self, characterName):
+        """Checks if a character is infected or not; True for infected, False for not."""
+        return self.findCharObj(characterName).getInfectedStatus()
     def thingsAttack(self):
         """Called every turn, allows infected characters to attack."""
         for room in range(len(self._roomList)):
-            self._roomList[room].thingsAttack()
+            infectedName = self._roomList[room].thingsAttack()
+            if infectedName != None:
+                if infectedName == "MacReady":
+                    self.findCharObj("MacReady").kill()
+                else:
+                    self.infect(infectedName)
     def showInventory(self, inventory):
+        """Displays MacReady's inventory."""
         print("Inventory...")
         if len(inventory) == 0:
             print("Nothing!")
@@ -212,7 +266,7 @@ class Control(object):
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
     twoWords = [""]
-    string.strip(" ")
+    string = string.strip()
     command = string.split(" ")
     if (len(command) == 1):
         return command
@@ -268,7 +322,6 @@ def fixCharName(string):
     elif charName == "CONNANT":
         newCharName = "Connant"
     else:
-        print("That's not a character.")
         return False
     return newCharName
     
@@ -278,35 +331,26 @@ def fixRoomName(string):
     newString = ""
     if cleanString == "BLAIR'S ROOM" or cleanString == "BLAIRS ROOM":
         newString = "Blair's Room"
-        return newString
     elif cleanString == "EXPERIMENT ROOM":
         newString = "Experiment Room"
-        return newString
     elif cleanString == "DINING ROOM":
         newString = "Dining Room"
-        return newString
     elif cleanString == "HANGAR":
         newString = "Hangar"
-        return newString
-    elif cleanString == "DOG ROOM" or cleanString == "DOGS ROOM" or cleanString == "DOG'S ROOM":
+    elif cleanString == "DOG ROOM" or cleanString == "DOGS ROOM" or cleanString == "DOG'S ROOM" or cleanString =="DOGROOM":
         newString = "Dog Room"
-        return newString
     elif cleanString == "THAWING ROOM":
         newString = "Thawing Room"
-        return newString
     elif cleanString == "FOYER":
         newString = "Foyer"
-        return newString
-    elif cleanString == "SECURITY ROOM":
+    elif cleanString == "SECURITY ROOM" or cleanString == "SECURITYROOM":
         newString = "Security Room"
-        return newString
     elif cleanString == "KITCHEN":
         newString = "Kitchen"
-        return newString
     else:
         print("Make sure you spell room names correctly.")
         return False
-    #return newString
+    return newString
         
 def assignCharsToRooms(characterList, roomList):
     """Assigns every character to a room."""
@@ -319,6 +363,14 @@ def assignCharsToRooms(characterList, roomList):
         newCharList.append(char)
         characterList.remove(char)
     return newCharList
+
+def fixBlood(string):
+    """Takes a blood string and assigns it to a person."""
+    chars = ['Fuches','Windows','Copper','Childs',"Barclay","Bennings","Clarke","Norris","Van Wall","Connant"]
+    blood = string
+    for c in range(len(chars)):
+        if blood == (chars[c]+"'s blood") or blood == (chars[c]+"' blood"):
+            return chars[c]
 
 def createCharObjs(listOfCharacterNames, roomList):
     """Creates a list of character objects when given a list of names."""
@@ -334,7 +386,7 @@ def createCharObjs(listOfCharacterNames, roomList):
     return charObjects
     
 def createRoomObjs(listOfRoomNames):
-    """Creates a list of room objects when gien a list of room names."""
+    """Creates a list of room objects when given a list of room names."""
     roomObjects = []
     #Creates characters from information in charNames list
     for x in range(len(listOfRoomNames)):
@@ -356,42 +408,54 @@ def turn(g):
     print()
     print("---------<Turn " + str(g.getTurnCount()) + ">---------")
     userInput = str(input("What would you like to do? "))
+    print()
     userInput = parse(userInput)
     command = userInput[0].upper()
     occupants = g.findRoomObj(MacReady.getRoomName()).occupantNames()
-    print("Len(userInput)" + str(len(userInput)))
     if command == 'MOVE':
         if len(userInput) < 2:
-            print("Check command and try again. Make sure the action preceeds the destination.")
+            print("Please specify the destination.")
             return
         move = g.changePlayerRoom(userInput[1])
-        #g.thingsAttack()
+        g.thingsAttack()
         g.randomize()
         if move == True:
             g.incTurnCount()
-            print()
             if MacReady.getRoomName() != "Blair's Room":
-                print("Moved to the " + MacReady.getRoomName())
+                print("Moved to the " + MacReady.getRoomName()+".")
                 print()
                 g.showCharsInRoom()
+                print()
                 return
             else:
-                print("Moved to " + MacReady.getRoomName())
+                print("Moved to " + MacReady.getRoomName()+".")
                 print()
                 g.showCharsInRoom()
+                print()
                 return
         if move == False:
             return
     if command == "KILL":
+        if len(userInput) < 2:
+            print("Please specify the target.")
+            return
         char = fixCharName(userInput[1])
-        if char == None:
+        if char == False:
+            print("That's not a character. Check spelling and try again.")
+            return
+        if g.findCharObj(char).isAlive() == False:
+            print(char + " is already dead!")
+            return
+        if char == "MacReady":
+            print("You can't torch yourself!")
             return
         target = g.findCharObj(char)
         macReadyRoom = MacReady.getRoomName()
         if target.getName() in occupants:
             print("MacReady torched " + target.getName() + ".")
             target.kill()
-            #g.thingsAttack()
+            target.setUninfected()
+            g.thingsAttack()
             g.randomize()
             g.incTurnCount()
             return
@@ -399,19 +463,29 @@ def turn(g):
             print("Make sure target is in the room.")
             return
     if command == "TAKE":
+        if len(userInput) < 2:
+            print("Please specify the item to be taken, or type a character's name to collect a blood sample.")
+            return
         item = userInput[1].upper()
         if item == "BLOOD":
-            name = input("Whose blood would you like to collect?")
+            name = input('MacReady - "Whose blood should I collect?"')
             name = fixCharName(name)
             if name == False:
                 print("Try again.")
                 return
             else:
-                add = MacReady.addInventory(name +"'s blood")
-                if add == True:
-                    print(name + "'s blood added to inventory.")
-                if add == False: 
-                    print("Inventory full.")
+                if name[-1] == 's':
+                    add = MacReady.addInventory(name +"' blood")
+                    if add == True:
+                        print(name + "' blood added to inventory.")
+                    if add == False:
+                        print("Inventory full.")
+                else:    
+                    add = MacReady.addInventory(name +"'s blood")
+                    if add == True:
+                        print(name + "'s blood added to inventory.")
+                    if add == False: 
+                        print("Inventory full.")
                 return
         if item == "KEY":
             if MacReady.getRoomName() == "Security Room":
@@ -426,6 +500,9 @@ def turn(g):
                 print("There's no key here.")
                 return
     if command == "GIVE":
+        if len(userInput) < 2:
+            print("Please specify the item to be given.")
+            return
         if MacReady.getRoomName() != "Blair's Room":
             print("You can only give items to Blair. Find him in Blair's Room!")
             return
@@ -434,62 +511,108 @@ def turn(g):
                 print("You can only give Blair blood from other characters.")
                 return
             else:
-                char = input('Blair: "Whose blood would you like to test?" ')
+                char = input('Blair - "Whose blood would you like to test?": ')
                 char = fixCharName(char)
                 if str(char+"'s blood") in MacReady.getInventory():
-                    MacReady.popInventory(char+"'s blood")
-                    print("Gave Blair blood to test.")
+                    charName = MacReady.popInventory(char+"'s blood")
+                    print("Gave Blair "+charName+" to test.")
+                    charName = fixBlood(charName)
+                    if g.isInfected(charName) == True:
+                        print('Blair - "' + charName + " has been infected!")
+                    else:
+                        print('Blair - "'+charName + " has not been infected.")
+                    return
+                elif str(char+"' blood") in MacReady.getInventory():
+                    charName = MacReady.popInventory(char+"' blood")
+                    print("Gave Blair "+charName+" to test.")
+                    charName = fixBlood(charName)
+                    if g.isInfected(charName) == True:
+                        print('Blair - "' + charName + " has been infected!")
+                    else:
+                        print('Blair - "'+charName + " has not been infected.")
                     return
                 else:
                     print("You don't have that item!")
                     return 
     if command == "USE":
+        if len(userInput) < 2:
+            print("Please specify which item to use.")
+            return
         item = userInput[1].upper()
         if item == "KEY":
             if MacReady.getRoomName() == "Foyer":
                 if "Key" in MacReady.getInventory():
                     print("Used the key to unlock the base's door. You escaped!")
-                    MacReady.kill()
+                    g.endGame()
                     return
                 else:
                     print("No key in inventory. Find it in the security room!")
                     return
             else:
-                print("You can only use the key in the Foyer!")
-                return
-    if command == "GIVE":
-        pass
+                if "Key" in MacReady.getInventory():
+                    print("You can only use the key in the Foyer!")
+                    return
+                else:
+                    print("No key in inventory. Find it in the security room!")
+                    return
+        else:
+            print("You can't use that.")
+            return
     if command == "WAIT":
         g.incTurnCount()
-        #g.thingsAttack()
+        g.thingsAttack()
         g.randomize()
         print("MacReady waited around a while.")
         print()
         g.showCharsInRoom()
+        print()
         return
     if command == 'STATUS':
-        print()
-        g.showRooms()
         g.showInventory(MacReady.getInventory())
+        print()
         return
     if command == "INFECTED":
         print()
         g.showInfectedChars()
         return
     if command == 'LOOK':
-        print()
         g.showPlayer()
         g.showCharsInRoom()
         print(roomDict[MacReady.getRoomName()])
+        print()
         return
     if command == 'HELP':
-        print("Commands are move, kill, look, wait, status, help, and quit.")
+        print("Recognized commands and their effects are:")
+        print('     - Move to <name of adjacent room>: Moves the player to an adjacent room.')
+        print('     - Kill <name of character in room>: Kills the specified character.')
+        print('     - Take <item or name of character in room>: Takes an item from the room or collects a blood sample.')
+        print('     - Give <item in inventory>: Gives an item in the inventory to Blair. Only to be used with blood samples.')
+        print('     - Use <item in inventory>: Uses an item in the inventory (only the key, currently).')
+        print('     - Wait: Passes one turn in the same room.')
+        print("     - Status: Displays the player's inventory. Does not cost a turn.")
+        print('     - Look: Gives specifics around the room. Does not cost a turn.')
+        print('     - Help: Displays the commands and their effects. Does not cost a turn.')
+        print('     - Quit: The player ends it all...')
+        print()
         return
     if command == "QUIT":
         g.findCharObj("MacReady").kill()
+        print(random.choice(quitMessages))
+        print()
         return
-    if command != "MOVE" or "STATUS" or "HELP" or "QUIT":
-        print("Commands are move, wait, status, help, and quit. Try again.")
+    else:
+        print("Please try a different command. Recognized commands are:")
+        print('     - Move to <name of adjacent room>')
+        print('     - Kill <name of character in room>')
+        print('     - Take <item or name of character in room>')
+        print('     - Give <item in inventory>')
+        print('     - Use <item in inventory>')
+        print('     - Wait')
+        print('     - Status')
+        print('     - Look')
+        print('     - Help')
+        print('     - Quit')
+        print()
         return
     
 def main():
@@ -500,55 +623,74 @@ def main():
     g = Control(roomObjs, permCharList)
     g.setupGame()
     
-    #print("---------(Setting up game)---------")
-    #g.showRooms()
-    #print("---------(Finding a character)---------")
-    #print(g.findCharObj("Blair"))
-    #print("---------(Finding a room)----------")
-    #print(g.findRoomObj("Blair's Room"))
-    #print("---------(Changing a character's room)---------")
-    #g.changeRoom("Blair", "Blair's Room")
-    #print(g.findCharObj("Blair"))
-    #print()
-    #print(g.findRoomObj("Blair's Room"))
-    #print("----------(Kills a couple characters)---------")
-    #g.findCharObj("Fuches").kill()
-    #g.findCharObj("Windows").kill()
-    #g.findCharObj("Childs").kill()
-    #print("----------(Status before randomize)-----------")
-    #g.showRooms()
-    #print("----------(Randomize)---------")
-    #g.randomize()
-    #print("----------(Status after randomize)-----------")
-    #g.showRooms()
-    #print("----------(Infects a character)---------")
-    #print(g.findCharObj('Childs'))
-    #print()
-    #g.infect("Childs")
-    #print(g.findCharObj('Childs'))
-    #print("----------(Find the player)----------")
-    #g.showPlayer()
-    #print("----------(Things Attack)----------")
-    #testTurn = 1
-    #while g.getInfectedCount() != 12:        
-    #    g.thingsAttack()
-    #    g.randomize()
-    #    print("Turn " + "%2s" % (str(testTurn)) + ": " + str(g.getInfectedCount()))
-    #    testTurn += 1
-    #print("___________")
-    #print(testTurn)
-    #print('----------(Fix Char Name Func)---------')
-    #childs = fixCharName('ChIlDs')
-    #print(childs)
-    #fuches = fixCharName("fuches")
-    #print(fuches)
-    #vanwall = fixCharName("VanWall")
-    #print(vanwall)
+##    print("---------(Setting up game)---------")
+##    g.showRooms()
+##    print("---------(Finding a character)---------")
+##    print(g.findCharObj("Blair"))
+##    print("---------(Finding a room)----------")
+##    print(g.findRoomObj("Blair's Room"))
+##    print("---------(Changing a character's room)---------")
+##    g.changeRoom("Blair", "Blair's Room")
+##    print(g.findCharObj("Blair"))
+##    print()
+##    print(g.findRoomObj("Blair's Room"))
+##    print("----------(Kills a couple characters)---------")
+##    g.findCharObj("Fuches").kill()
+##    g.findCharObj("Windows").kill()
+##    g.findCharObj("Childs").kill()
+##    print("----------(Status before randomize)-----------")
+##    g.showRooms()
+##    print("----------(Randomize)---------")
+##    g.randomize()
+##    print("----------(Status after randomize)-----------")
+##    g.showRooms()
+##    print("----------(Infects a character)---------")
+##    print(g.findCharObj('Childs'))
+##    print()
+##    g.infect("Childs")
+##    print(g.findCharObj('Childs'))
+##    print("----------(Find the player)----------")
+##    g.showPlayer()
+##    print("----------(Things Attack)----------")
+##    testTurn = 1
+##    while g.checkPlayer() == True:        
+##        g.thingsAttack()
+##        g.randomize()
+##        print("Turn " + "%2s" % (str(testTurn)) + ": " + str(g.getInfectedCount()) + " infected.")
+##        testTurn += 1
+##    print("___________")
+##    print(testTurn)
+##    print(g.checkPlayer())
+##    print('----------(Fix Char Name Func)---------')
+##    childs = fixCharName('ChIlDs')
+##    print(childs)
+##    fuches = fixCharName("fuches")
+##    print(fuches)
+##    vanwall = fixCharName("VanWall")
+##    print(vanwall)
     print("----------(Test game)----------")
-    while g.checkPlayer() == True:
-
-        #g.showRooms()
+    while g.checkPlayer() == True and g.continueGame() == True:
         turn(g)
+    if g.checkPlayer() == False:
+        print("Macready died.")
+        g.printStats()
+        return
+    if g.checkPlayer() == True:
+        if g.getInfectedCount() > 0:
+            print("MacReady escaped, but so did The Thing.")
+            g.printStats()
+            return
+        else:
+            if g.getAliveCount() > 1:
+                print("MacReady escaped with survivors. Best ending possible.")
+                g.printStats()
+                return
+            else:
+                print("MacReady escaped without survivors. The world survives, but he is imprisoned for murder.")
+                g.printStats()
+                return
+    
+    
         
 if __name__ == '__main__':
     main()
