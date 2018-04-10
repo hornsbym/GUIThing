@@ -39,21 +39,33 @@ class Room(object):
         else:
             return char + " is not in the room."
     def thingsAttack(self):
-        """Checks for infected characters in the room. Each infected character has a 10% chance to attack."""
+        """Checks for infected characters in the room. Has a 50% chance of letting things attack."""
         if len(self._occupants) == 0:
-            return
+            return None
         numOne = random.randint(1,2)
+        killNum = random.randint(1,10)
         if numOne == 1:
             personOne = random.choice(self._occupants)
             personTwo = random.choice(self._occupants)
-            if personOne is personTwo:
-                return
+            if personOne.getName() == "Blair" or personTwo.getName() == "Blair":
+                return None
+            elif personOne is personTwo:
+                return None
+            elif personOne.getName() == "MacReady":
+                if killNum < 7:
+                    return personOne.getName()
+                else:
+                    return None
+            elif personTwo.getName() == "MacReady":
+                if killNum < 7:
+                    return personOne.getName()
+                else:
+                    return None
             elif personOne.getInfectedStatus() == personTwo.getInfectedStatus():
                 return
             elif personOne.getInfectedStatus() == True and personOne.isAlive() == True:
-                return personTwo.setInfectedStatus()
+                return personTwo.getName()
             elif personTwo.getInfectedStatus() == True and personTwo.isAlive() == True:
-                return personOne.setInfectedStatus()
-        else:
-            return
-        
+                return personOne.getName()
+#        else:
+#            return
