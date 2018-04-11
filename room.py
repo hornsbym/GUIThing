@@ -51,21 +51,26 @@ class Room(object):
                 return None
             elif personOne is personTwo:
                 return None
-            elif personOne.getName() == "MacReady":
-                if killNum < 7:
+            elif personOne.getName() == "MacReady" and personTwo.getInfectedStatus()==True and personTwo.isAlive()==True:
+                if killNum < 6:
                     return personOne.getName()
                 else:
                     return None
-            elif personTwo.getName() == "MacReady":
-                if killNum < 7:
-                    return personOne.getName()
+            elif personTwo.getName() == "MacReady" and personOne.getInfectedStatus()==True and personOne.isAlive()==True:
+                if killNum < 6:
+                    return personTwo.getName()
                 else:
                     return None
             elif personOne.getInfectedStatus() == personTwo.getInfectedStatus():
-                return
+                return None
             elif personOne.getInfectedStatus() == True and personOne.isAlive() == True:
-                return personTwo.getName()
+                if killNum < 7:
+                    return personTwo.getName()
+                else:
+                    return None
             elif personTwo.getInfectedStatus() == True and personTwo.isAlive() == True:
-                return personOne.getName()
-#        else:
-#            return
+                if killNum < 7:
+                    return personOne.getName()
+                else:
+                    return None
+                
