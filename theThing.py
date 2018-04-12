@@ -24,6 +24,8 @@ class Control(object):
         self._charList = charList
         self._turnCount = 1
         self._continue = True
+        self._knownInfected = []
+        self._possiblyHuman = []
     def continueGame(self):
         """Determines whether a game can be continued."""
         return self._continue
@@ -90,9 +92,6 @@ class Control(object):
         infectedOne = random.choice(self._charList)
         infectedTwo = random.choice(self._charList)
         infectedThree = random.choice(self._charList)
-        print(infectedOne.getName())
-        print(infectedTwo.getName())
-        print(infectedThree.getName())
         if infectedOne.getName() != "Blair" and infectedOne.getName() != "MacReady":
             self.infect(infectedOne.getName())
         if infectedTwo.getName() != "Blair" and infectedTwo.getName() != "MacReady":
@@ -269,10 +268,73 @@ class Control(object):
             return
         for item in range(len(inventory)):
             print("    -" + str(inventory[item]))
-    def addKill(self, thing):
-        """Takes the name of a person and adds them to the kill list if they're infected."""
-        if thing.getInfectedStatus() == True:
-            self._killedThings.append(thing.getName())
+    def addKnownInfected(self, thing):
+        """Adds the name of a person who is definitely infected to a list."""
+        if thing in self._knownInfected:
+            return
+        else:
+            self._knownInfected.append(thing)
+            for x in range(len(self._possiblyHuman)):
+                if self._possiblyHuman[x] == thing:
+                    self._possiblyHuman.remove(thing)
+            return
+    def addKnownUninfected(self, person):
+        """Adds the name of a person who tested not infected."""
+        if person in self._possiblyHuman:
+            return
+        else:
+            self._possiblyHuman.append(person)
+            return
+    def showKnownInfected(self):
+        """Shows people who have tested positive for being infected."""
+        if len(self._knownInfected) > 0:
+            print("Tested positive: ")
+            for x in range(len(self._knownInfected)):
+                status = self.findCharObj(self._knownInfected[x]).isAlive()
+                if status == True:
+                    print("   -"+self._knownInfected[x]+", Alive")
+                else:
+                    print("   -"+self._knownInfected[x]+", Dead")
+            print()
+            return
+        else:
+            print("No confirmed infected yet.")
+            print()
+            return
+    def showKnownUninfected(self):
+        """Shows people who have tested negative for being infected."""
+        if len(self._possiblyHuman) > 0:
+            print("Tested negative: ")
+            for x in range(len(self._possiblyHuman)):
+                status = self.findCharObj(self._possiblyHuman[x]).isAlive()
+                if status == True:
+                    print("   -"+self._possiblyHuman[x]+", Alive")
+                else:
+                    print("   -"+self._possiblyHuman[x]+", Dead")
+            print()
+            return
+        else:
+            print("No blood tests conducted yet.")
+            print()
+            return
+
+def openingSequence():
+    """Initializes the game."""
+    print(openingMessage)
+    print()
+    command = input("Press enter to begin.")
+    print()
+    command = command.upper()
+    if command == "":
+        return True
+    if command == "CREDITS":
+        print(creditMessage)
+        print()
+        return False
+    else:
+        print("Type 'Credits' or just press enter.")
+        print()
+        return False
 
 def parse(string):
     """Parses through a string, returns a list with a command and target."""
@@ -592,6 +654,10 @@ def turn(g):
                 char = input('Blair - "Whose blood would you like to test?": ')
                 print()
                 char = fixCharName(char)
+                if char == False or char == None:
+                    print("Try again.")
+                    print()
+                    return
                 if str(char+"'s blood") in MacReady.getInventory():
                     charName = MacReady.popInventory(char+"'s blood")
                     print("Gave Blair "+charName+" to test.")
@@ -600,9 +666,11 @@ def turn(g):
                     if g.isInfected(charName) == True:
                         print('Blair - "' + charName + ' is infected!"')
                         print()
+                        g.addKnownInfected(charName)
                     else:
                         print('Blair - "'+charName + ' is not infected."')
                         print()
+                        g.addKnownUninfected(charName)
                     return
                 elif str(char+"' blood") in MacReady.getInventory():
                     charName = MacReady.popInventory(char+"' blood")
@@ -611,9 +679,11 @@ def turn(g):
                     if g.isInfected(charName) == True:
                         print('Blair - "' + charName + ' is infected!"')
                         print()
+                        g.addKnownInfected(charName)
                     else:
                         print('Blair - "'+charName + ' is not infected."')
                         print()
+                        g.addKnownUninfected(charName)
                     return
                 else:
                     print("You don't have that item!")
@@ -671,16 +741,15 @@ def turn(g):
         print()
         g.showInventory(MacReady.getInventory())
         print()
+        g.showKnownInfected()
+        g.showKnownUninfected()
         if g.getInfectedCount() == 1:
             print("There is " + str(g.getInfectedCount()) + " infected person in the base.")
         else:
             print("There are " + str(g.getInfectedCount()) + " infected people in the base.")
+        print("There are " + str(g.getAliveCount()) + " people still alive in the base.")
         print()
         return
-##    if command == "INFECTED":
-##        print()
-##        g.showInfectedChars()
-##        return
     if command == 'LOOK':
         g.showPlayer()
         print()
@@ -762,79 +831,45 @@ def main():
     permCharList = assignCharsToRooms(charObjs, roomObjs)
     g = Control(roomObjs, permCharList)
     g.setupGame()
-    
-##    print("---------(Setting up game)---------")
-##    g.showRooms()
-##    print("---------(Finding a character)---------")
-##    print(g.findCharObj("Blair"))
-##    print("---------(Finding a room)----------")
-##    print(g.findRoomObj("Blair's Room"))
-##    print("---------(Changing a character's room)---------")
-##    g.changeRoom("Blair", "Blair's Room")
-##    print(g.findCharObj("Blair"))
-##    print()
-##    print(g.findRoomObj("Blair's Room"))
-##    print("----------(Kills a couple characters)---------")
-##    g.findCharObj("Fuches").kill()
-##    g.findCharObj("Windows").kill()
-##    g.findCharObj("Childs").kill()
-##    print("----------(Status before randomize)-----------")
-##    g.showRooms()
-##    print("----------(Randomize)---------")
-##    g.randomize()
-##    print("----------(Status after randomize)-----------")
-##    g.showRooms()
-##    print("----------(Infects a character)---------")
-##    print(g.findCharObj('Childs'))
-##    print()
-##    g.infect("Childs")
-##    print(g.findCharObj('Childs'))
-##    print("----------(Find the player)----------")
-##    g.showPlayer()
-##    print("----------(Things Attack)----------")
-##    testTurn = 1
-##    while g.checkPlayer() == True:        
-##        g.thingsAttack()
-##        g.randomize()
-##        print("Turn " + "%2s" % (str(testTurn)) + ": " + str(g.getInfectedCount()) + " infected.")
-##        testTurn += 1
-##    print("___________")
-##    print(testTurn)
-##    print(g.checkPlayer())
-##    print('----------(Fix Char Name Func)---------')
-##    childs = fixCharName('ChIlDs')
-##    print(childs)
-##    fuches = fixCharName("fuches")
-##    print(fuches)
-##    vanwall = fixCharName("VanWall")
-##    print(vanwall)
-    print("----------(Test game)----------")
+
+    check = False
+    while check == False:
+        o = openingSequence()
+        if o == True:
+            check = True
+    print("--------------------| THE THING |--------------------")
     while g.checkPlayer() == True and g.continueGame() == True:
         turn(g)
     if g.checkPlayer() == False:
         print("Macready died.")
         print()
         g.printStats()
+        print()
+        print(creditMessage)
         return
     if g.checkPlayer() == True:
         if g.getInfectedCount() > 0:
             print("MacReady escaped, but so did The Thing.")
             print()
             g.printStats()
+            print()
+            print(creditMessage)
             return
         else:
             if g.getAliveCount() > 2:
                 print("MacReady escaped with survivors. Best ending possible.")
                 print()
                 g.printStats()
+                print()
+                print(creditMessage)
                 return
             else:
                 print("MacReady escaped without survivors. The world survives, but he is imprisoned for murder.")
                 print()
                 g.printStats()
+                print()
+                print(creditMessage)
                 return
-    
-    
         
 if __name__ == '__main__':
     main()
