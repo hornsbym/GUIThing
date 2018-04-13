@@ -50,6 +50,9 @@ class Control(object):
                 dHumans.append(name)
             if character.isAlive() == False and character.getInfectedStatus() == True:
                 dInfected.append(name)
+        score = (50*len(aHumans))-(25*len(dHumans))-(.3*(self.getTurnCount()))
+        if len(aInfected) == 0:
+            score += 100
         print("Surviving humans: ")
         for human in range(len(aHumans)):
             print("     -"+aHumans[human])
@@ -65,6 +68,11 @@ class Control(object):
         print("Dead Things: ")
         for dthing in range(len(dInfected)):
             print("     -"+dInfected[dthing])
+        print()
+        if score > 0 and self.checkPlayer()==True:
+            print("Score: "+str(round(score)))
+        if score < 0 or self.checkPlayer()==False:
+            print("Score: 0")
     def getInfectedCount(self):
         """Returns how many characters are infected."""
         count = 0
@@ -274,9 +282,8 @@ class Control(object):
             return
         else:
             self._knownInfected.append(thing)
-            for x in range(len(self._possiblyHuman)):
-                if self._possiblyHuman[x] == thing:
-                    self._possiblyHuman.remove(thing)
+            if thing in self._possiblyHuman:
+                self._possiblyHuman.remove(thing)
             return
     def addKnownUninfected(self, person):
         """Adds the name of a person who tested not infected."""
