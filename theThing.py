@@ -158,13 +158,9 @@ class Control(object):
         if userInput == False:
             return False
         elif self.checkMove(self.findCharObj("MacReady").getRoomName(), userInput) == False:
-            print("You can't get there from here!")
-            print()
             return False
         elif self.checkMove(self.findCharObj("MacReady").getRoomName(), userInput) == None:
-            print("But you're already there...")
-            print()
-            return False
+            return None
         else:
             self.changeRoom("MacReady", userInput)
             return True
@@ -174,10 +170,7 @@ class Control(object):
     def showPlayer(self):
         """Finds and prints the current location of the player."""
         location = self.findCharObj("MacReady").getRoomName()
-        if location != "Blair's Room":
-            print("You are in the " + location + ".")
-        else:
-            print("You are in " + location + ".")
+        return location
     def checkPlayer(self):
         """Checks to see if MacReady is still alive."""
         player = self.findCharObj("MacReady")
@@ -324,7 +317,85 @@ class Control(object):
             print("No blood tests conducted yet.")
             print()
             return
-
+    def occupants(self):
+        """Returns a formatted string of characters in MacReady's room."""
+        mac = self.findCharObj("MacReady")
+        occupants = self.findRoomObj(mac.getRoomName()).occupantNames()
+        string = ""
+        for char in range(len(occupants)):
+            if self.findCharObj(occupants[char]).isAlive() == True:
+                string += occupants[char] + " \n"
+        return string
+    def inventory(self):
+        """Returns formatted string representing inventory items."""
+        inv = self.findCharObj("MacReady").getInventory()
+        strInv = ""
+        if len(inv) == 0:
+            return "Empty"
+        for i in range(len(inv)):
+            strInv += inv[i] + "\n"
+        return strInv
+    def strInfected(self):
+        """Returns a formatted string representation of tested infected."""
+        string = ''
+        if len(self._knownInfected) > 0:
+            for x in range(len(self._knownInfected)):
+                status = self.findCharObj(self._knownInfected[x]).isAlive()
+                if status == True:
+                    string += self._knownInfected[x] +", Alive\n"
+                else:
+                    string += self._knownInfected[x]+", Dead\n"
+            return string
+        else:
+            string = "No confirmed infected yet.\n"
+            return string
+    def strUninfected(self):
+        """Returns string representation of people who have tested negative for being infected."""
+        string = ''
+        if len(self._possiblyHuman) > 0:
+            for x in range(len(self._possiblyHuman)):
+                status = self.findCharObj(self._possiblyHuman[x]).isAlive()
+                if status == True:
+                    string += self._possiblyHuman[x]+", Alive\n"
+                else:
+                    string += self._possiblyHuman[x]+", Dead\n"
+            return string
+        else:
+            string = "No blood tests conducted yet.\n"
+            return string
+    def showMap(self):
+        """Returns string map."""
+        return baseMap2
+    def getStats(self):
+        """Gets and returns a formatted string for the end-game stats."""
+        aHumans = ""
+        aliveCount = 0
+        dHumans = ""
+        deadCount = 0
+        aInfected = ""
+        dInfected = ""
+        for char in range(len(self._charList)):
+            character = self._charList[char]
+            name = character.getName()
+            if character.isAlive() == True and character.getInfectedStatus() == False:
+                aHumans += "   -"+name+"\n"
+                aliveCount += 1
+            if character.isAlive() == True and character.getInfectedStatus() == True:
+                aInfected += "   -"+name+"\n"
+            if character.isAlive() == False and character.getInfectedStatus() == False:
+                dHumans += "   -"+name+"\n"
+                deadCount += 1
+            if character.isAlive() == False and character.getInfectedStatus() == True:
+                dInfected += "   -"+name+"\n"
+        score = (50*aliveCount)-(25*deadCount)-(.3*(self.getTurnCount()))
+        if len(aInfected) == 0:
+            score += 100
+        if score > 0 and self.checkPlayer()==True:
+            score = round(score)
+        if score < 0 or self.checkPlayer()==False:
+            score = 0
+        return "Surviving humans:\n"+aHumans+"\nDead Humans: \n"+dHumans+"\nSurviving Things:\n"+aInfected+"\nDead Things:\n"+dInfected+"\nScore:"+str(score)
+        
 def openingSequence():
     """Initializes the game."""
     print(openingMessage)
@@ -373,6 +444,36 @@ def parse(string):
             newList = [verb, target]
             return newList
 
+def newParse(string):
+    """Improved parse function. Takes a string of words, returns a list of commands."""
+    negate = ["TO", "FROM"]
+    join = ["DINING","EXPERIMENT","VAN","DOG","BLAIR'S","THAWING","SECURITY","FUCHES'","WINDOWS'","COPPER'S","CHILDS'","BARCLAY'S","BENNINGS'","CLARKE'S","NORRIS'"\
+            ,"VAN WALL'S","CONNANT'S"]
+    words = []
+    string = string.upper()
+    string = string.strip()
+    lyst = string.split(" ")
+    print(lyst)
+    for x in range(len(lyst)):
+        if lyst[x] not in negate:
+            print("Word: " + lyst[x])
+            if lyst[x] == "VAN":
+                newWord = lyst[x]+ " " + lyst[x+1]
+                lyst[x+1] = ''
+                words.append(newWord)
+            else:
+                words.append(lyst[x])
+    if "" in words:
+        words.remove('')
+    for x in range(len(words)):
+        if words[x] in join:
+            newWord = words[x] + " " + words[x+1]
+            words[x] = newWord
+            words[x+1]= ""
+    if "" in words:
+        words.remove('')
+    return words
+    
 def fixCharName(string):
     """Normalizes a character's name."""
     charName = string.upper()
@@ -474,306 +575,235 @@ def createRoomObjs(listOfRoomNames):
         roomObjects.append(r)
     return roomObjects
         
-def turn(g):
+def turn(g, userInput):
     """Controls the events that happen each turn."""
     MacReady = g.findCharObj("MacReady")
     occupants = g.findRoomObj(MacReady.getRoomName()).occupantNames()
-    if MacReady.getRoomName() not in MacReady.getVisited():
-        print()
-        print(roomDict[MacReady.getRoomName()])
-        print()
     MacReady.addVisited()
-    print("---------<Turn " + str(g.getTurnCount()) + ", "+MacReady.getRoomName()+">---------")
-    print("People in room: ")
-    for x in range(len(occupants)):
-        if g.findCharObj(occupants[x]).isAlive() == True:
-            print("   - "+occupants[x])
-    print()
-    userInput = str(input("What would you like to do? "))
-    print()
-    userInput = parse(userInput)
+    userInput = newParse(userInput)
     command = userInput[0].upper()
     if command == 'MOVE' or command == 'GO':
         if len(userInput) < 2:
-            print("Please specify the destination.")
-            print()
-            return
+            error = "Please specify the destination."+"\n"
+            return desc + error
         attack = g.thingsAttack()
         if attack == True:
-            print(random.choice(deathMessages))
-            print()
-            return
+            death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+            g.endGame()
+            return desc + death
         move = g.changePlayerRoom(userInput[1])
+        if MacReady.getRoomName() not in MacReady.getVisited():
+            desc = str(roomDict[MacReady.getRoomName()]) + "\n\n"
+        if MacReady.getRoomName() in MacReady.getVisited():
+            desc = ""
         g.randomize()
         if move == True:
             g.incTurnCount()
             if MacReady.getRoomName() != "Blair's Room":
-                print("Moved to the " + MacReady.getRoomName()+".")
-                print()
-                return
+                moveOne = "Moved to the " + str(MacReady.getRoomName()) +"." + "\n\n"
+                return moveOne + desc
             else:
-                print("Moved to " + MacReady.getRoomName()+".")
-                print()
-                return
+                moveTwo = "Moved to " + str(MacReady.getRoomName())+"."+"\n\n"
+                return moveTwo + desc
         if move == False:
-            return
+            noMove = "Can't get there from here!" + "\n\n"
+            return noMove + desc
+        if move == None:
+            noMove = "You're already there." + "\n\n"
+            return noMove + desc
     if command == "KILL":
         if len(userInput) < 2:
-            print("Please specify the target.")
-            print()
-            return
+            error = "Please specify the target." + "\n\n"
+            return error
         char = fixCharName(userInput[1])
         if char == False:
-            print("That's not a character. Check spelling and try again.")
-            print()
-            return
+            error = "That's not a character. Check spelling and try again." + '\n\n'
+            return error
         if g.findCharObj(char).isAlive() == False:
-            print(char + " is already dead!")
-            print()
-            return
+            warning = char + " is already dead!" + "\n\n"
+            return warning
         if char == "MacReady":
-            print("You can't torch yourself!")
-            print()
-            return
+            warning = "You can't torch yourself!" + "\n\n"
+            return warning
         if char == "Blair":
-            print('MacReady - "No! I need Blair to test blood."')
-            print()
-            return
+            warning = 'MacReady - "No! I need Blair to test blood."' + "\n\n"
+            return warning
         target = g.findCharObj(char)
         macReadyRoom = MacReady.getRoomName()
         if target.getName() in occupants:
             target.kill()
-            print("MacReady torched " + target.getName() + ".")
-            print()
+            kill = "MacReady torched " + target.getName() + "." +"\n\n"
             attack = g.thingsAttack()
             if attack == True:
-                print(random.choice(deathMessages))
-                print()
-                return
+                death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+                g.endGame()
+                return death
             if g.getInfectedCount() == 1:
-                print("There is " + str(g.getInfectedCount()) + " infected person in the base.")
+                kill += "There is " + str(g.getInfectedCount()) + " infected person in the base."+"\n\n"
             else:
-                print("There are " + str(g.getInfectedCount()) + " infected people in the base.")
-            print()
+                kill += "There are " + str(g.getInfectedCount()) + " infected people in the base." + "\n\n"
             g.randomize()
             g.incTurnCount()
-            return
+            return kill
         else:
-            print("Make sure target is in the room.")
-            print()
-            return
+            miss = "Make sure target is in the room." + "\n\n"
+            return miss
     if command == "TAKE":
         if len(userInput) < 2:
-            print("Please specify the item to be taken, or type a character's name to collect a blood sample.")
-            return
+            error = "Please specify the item to be taken, or type a character's name to collect a blood sample." + "\n\n"
+            return error
         item = userInput[1].upper()
         if item == "BLOOD":
-            name = input('MacReady - "Whose blood should I collect?" ')
-            print()
+            name = userInput[2].upper()
             name = fixCharName(name)
+            print(name)
             if name == False:
-                print("Try again.")
-                print()
-                return
+                error = "Try again." + "\n\n"
+                return error
             if name == "MacReady":
-                print('''MacReady - "Probably not necessary... I know I'm not infected."''')
-                print()
-                return
+                error = '''MacReady - "Probably not necessary... I know I'm not infected."''' + "\n\n"
+                return error
             if name == "Blair":
-                print('''MacReady - "Hmm... the old man's locked up pretty tight. I doubt he's infected."''')
-                print()
-                return
+                error = '''MacReady - "Hmm... the old man's locked up pretty tight. I doubt he's infected."''' + "\n\n"
+                return error
             if g.findCharObj(name).isAlive()== False:
-                print("They're too badly burned to collect any blood.")
-                print()
-                return
+                error = "They're too badly burned to collect any blood." + "\n\n"
+                return error
             else:
                 if name[-1] == 's':
                     add = MacReady.addInventory(name +"' blood")
                     if add == True:
                         attack = g.thingsAttack()
                         if attack == True:
-                            print(random.choice(deathMessages))
-                            print()
-                            return
-                        print(name + "' blood added to inventory.")
-                        print()
+                            death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+                            g.endGame()
+                            return death
+                        yes = name + "' blood added to inventory." + "\n\n"
                         g.randomize()
                         g.incTurnCount()
-                        return
+                        return yes
                     if add == False:
-                        print("Inventory full.")
-                        print()
+                        no = "Inventory full." + "\n\n"
+                        return no
                 else:    
                     add = MacReady.addInventory(name +"'s blood")
                     if add == True:
                         attack = g.thingsAttack()
                         if attack == True:
-                            print(random.choice(deathMessages))
-                            print()
-                            return                        
-                        print(name + "'s blood added to inventory.")
-                        print()
+                            death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+                            g.endGame()
+                            return death
+                        yes = name + "'s blood added to inventory." + "\n\n"
                         g.randomize()
                         g.incTurnCount()
-                        return
+                        return yes
                     if add == False: 
-                        print("Inventory full.")
-                        print()
-                return
+                        no = "Inventory full." + "\n\n"
+                        return no
         if item == "KEY":
             if MacReady.getRoomName() == "Security Room":
                 if "Key" not in MacReady.getInventory():
                     attack = g.thingsAttack()
                     if attack == True:
-                        print(random.choice(deathMessages))
-                        print()
-                        return   
+                        death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+                        g.endGame()
+                        return death
                     MacReady.addInventory("Key")
-                    print("Key added to inventory.")
-                    print()
+                    yes = "Key added to inventory." + '\n\n'
                     g.randomize()
                     g.incTurnCount()
-                    return
+                    return yes
                 else:
-                    print("You already have the key!")
-                    print()
-                    return
+                    no = "You already have the key!" + "\n\n"
+                    return no
             else:
-                print("There's no key here.")
-                print()
-                return
-    if command == "GIVE":
+                no = "There's no key here." + "\n\n"
+                return no
+    if command == "GIVE" or command == "TEST":
         if len(userInput) < 2:
-            print("Please specify the item to be given.")
-            print()
-            return
+            error = "Please which item to give." + "\n\n"
+            return error
         if MacReady.getRoomName() != "Blair's Room":
-            print("You can only give items to Blair. Find him in Blair's Room!")
-            print()
-            return
+            error = "You can only give items to Blair. Find him in Blair's Room!" + "\n\n"
+            return error
         else:
-            if userInput[1].upper() != "BLOOD":
-                print("You can only give Blair blood for testing.")
-                print()
-                return
+            if "BLOOD" not in userInput[1].upper():
+                error = "You can only give Blair blood for testing." + "\n\n"
+                return error
             else:
-                char = input('Blair - "Whose blood would you like to test?": ')
-                print()
-                char = fixCharName(char)
-                if char == False or char == None:
-                    print("Try again.")
-                    print()
-                    return
-                if str(char+"'s blood") in MacReady.getInventory():
-                    charName = MacReady.popInventory(char+"'s blood")
-                    print("Gave Blair "+charName+" to test.")
-                    print()
-                    charName = fixBlood(charName)
+                blood = userInput[1]
+                charName = blood[:-6]
+                if charName[-1] == "S":
+                    charName = charName[:-2]
+                if charName[-1] == "'":
+                    charName = charName[:-1]
+                charName = fixCharName(charName)
+                upperInv = []
+                for x in range(len(MacReady.getInventory())):
+                    newItem = MacReady.getInventory()[x].upper()
+                    upperInv.append(newItem)
+                if blood in upperInv:
+                    for x in range(len(upperInv)):
+                        if blood == upperInv[x]:
+                            MacReady.removeInventory(x)
+                    result = "Gave Blair "+ charName + "blood." + "\n"
                     if g.isInfected(charName) == True:
-                        print('Blair - "' + charName + ' is infected!"')
-                        print()
+                        infected = 'Blair - "' + charName + ' is infected!"' + "\n\n"
                         g.addKnownInfected(charName)
+                        return infected
                     else:
-                        print('Blair - "'+charName + ' is not infected."')
-                        print()
+                        notInfected = 'Blair - "'+charName + ' is not infected."' + "\n\n"
                         g.addKnownUninfected(charName)
-                    return
-                elif str(char+"' blood") in MacReady.getInventory():
-                    charName = MacReady.popInventory(char+"' blood")
-                    print("Gave Blair "+charName+" to test.")
-                    charName = fixBlood(charName)
-                    if g.isInfected(charName) == True:
-                        print('Blair - "' + charName + ' is infected!"')
-                        print()
-                        g.addKnownInfected(charName)
-                    else:
-                        print('Blair - "'+charName + ' is not infected."')
-                        print()
-                        g.addKnownUninfected(charName)
-                    return
+                        return notInfected
                 else:
-                    print("You don't have that item!")
-                    print()
-                    return 
+                    nope = "You don't have that item!" + "\n\n"
+                    return nope
     if command == "USE":
         if len(userInput) < 2:
-            print("Please specify which item to use.")
-            print()
-            return
+            error = "Please specify which item to use." + "\n\n"
+            return error
         item = userInput[1].upper()
         if item == "KEY":
             if MacReady.getRoomName() == "Foyer":
                 if "Key" in MacReady.getInventory():
-                    print("Used the key to unlock the base's door. You escaped!")
-                    print()
+                    used = "Used the key to unlock the base's door. You escaped!" + "\n\n"
                     g.endGame()
-                    return
+                    return used
                 else:
-                    print("No key in inventory. Find it in the security room!")
-                    print()
-                    return
+                    notUsed = "No key in inventory. Find it in the security room!" + "\n\n"
+                    return notUsed
             else:
                 if "Key" in MacReady.getInventory():
-                    print("You can only use the key in the Foyer!")
-                    print()
-                    return
+                    notUsed = "You can only use the key in the Foyer!" + "\n\n"
+                    return notUsed
                 else:
-                    print("No key in inventory. Find it in the security room!")
-                    print()
-                    return
+                    notUsed = "No key in inventory. Find it in the security room!" + "\n\n"
+                    return notUsed
         else:
-            print("You can't use that.")
-            print()
-            return
+            notUsed = "You can't use that." + "\n\n"
+            return notUsed
     if command == "WAIT":
         attack = g.thingsAttack()
         if attack == True:
-            print(random.choice(deathMessages))
-            print()
-            return
-        print("MacReady waited around a while.")
-        print()
+            death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+            g.endGame()
+            return death
+        wait = "MacReady waited around a while." +"\n\n" 
         g.randomize()
         g.incTurnCount()
-        return
-    if command == 'STATUS':
-        print("...[Opening File]...")
-        print()
-        print("      Name: R.J. MacReady")
-        print("Occupation: Meteorologist")
-        print("  Location: Antarctic Research Base, " + MacReady.getRoomName())
-        print("    Status: Alive")
-        print("  Infected: Negative")
-        print()
-        g.showInventory(MacReady.getInventory())
-        print()
-        g.showKnownInfected()
-        g.showKnownUninfected()
-        if g.getInfectedCount() == 1:
-            print("There is " + str(g.getInfectedCount()) + " infected person in the base.")
-        else:
-            print("There are " + str(g.getInfectedCount()) + " infected people in the base.")
-        print("There are " + str(g.getAliveCount()) + " people still alive in the base.")
-        print()
-        return
+        return wait
     if command == 'LOOK':
-        g.showPlayer()
-        print()
-        print(roomDict[MacReady.getRoomName()])
-        print()
-        g.showCharsInRoom()
-        print()
+        desc = str(roomDict[MacReady.getRoomName()]) + "\n\n"
         if MacReady.getRoomName() == "Security Room" and "Key" not in MacReady.getInventory():
-            print("A rather large key is hanging on the wall.")
-            print()
-        return
+            key = "A rather large key is hanging on the wall." + "\n\n"
+        else:
+            key = ""
+        return desc + key
     if command == "TALK":
         target = random.choice(occupants)
         if len(occupants) == 1:
-            print("There's nobody here!")
-            print()
-            return
+            nope = "Nobody to talk to." + "\n\n"
+            return nope
         if target == "MacReady" or g.findCharObj(target).isAlive() == False:
             for x in range(len(occupants)):
                 target = occupants[x]
@@ -782,54 +812,41 @@ def turn(g):
                 else:
                     target = None
         if target == None:
-            print("There's no one alive to talk to.")
-            print()
-            return
-        print(target+' - '+random.choice(dialogue))
-        print()
-        return
-    if command == "MAP":
-        print(baseMap)
-        print()
-        return
+            nope = "No one's alive to talk to." + "\n\n"
+            return nope
+        talk = target+' - '+random.choice(dialogue) + "\n\n"
+        return talk
     if command == 'HELP':
-        print("Recognized commands and their effects are:")
-        print() 
-        print('-   Move: Moves the player to an adjacent room.')
-        print('-   Kill: Kills the specified character.')
-        print('-   Take: Takes an item from the room or collects a blood sample.')
-        print('-   Give: Gives an item in the inventory to Blair. Only to be used with blood samples.')
-        print('-    Use: Uses an item in the inventory (only the key, currently).')
-        print('-   Wait: Passes one turn in the same room.')
-        print("- Status: Displays the player's inventory. Does not cost a turn.")
-        print('-   Look: Gives specifics around the room. Does not cost a turn.')
-        print('-    Map: Displays a map of the base.')
-        print('-   Talk: Talks to someone in the room.')
-        print('-   Help: Displays the commands and their effects. Does not cost a turn.')
-        print('-   Quit: The player ends it all...')
-        print()
-        return
+        message = "Recognized commands and their effects are: \n\n" + \
+        '- Move: Moves the player to an adjacent room.\n'+\
+        '- Kill: Kills the specified character.\n'+\
+        '- Take: Takes an item from the room or collects a blood sample.\n'+\
+        '- Give: Gives blood from the inventory to Blair.\n'+\
+        '- Use: Uses an item in the inventory (only the key, currently).\n'+\
+        '- Wait: Passes one turn in the same room.\n'+\
+        '- Look: Gives specifics around the room. Does not cost a turn.\n'+\
+        '- Talk: Talks to someone in the room.\n'+\
+        '- Help: Displays the commands and their effects.\n'+\
+        '- Quit: MacReady ends it all...\n\n'
+        return message
     if command == "QUIT":
         g.findCharObj("MacReady").kill()
-        print(random.choice(quitMessages))
-        print()
-        return
+        death = str(random.choice(deathMessages)) + "\n\n"+"Macready died." + "\n\n" + "Press 'Enter' to view score."
+        g.endGame()
+        return kill
     else:
-        print("Please try a different command. Recognized commands are:")
-        print('   - Move to <name of adjacent room>')
-        print('   - Kill <name of character in room>')
-        print('   - Take <item or blood>')
-        print('   - Give <item in inventory>')
-        print('   - Use <item in inventory>')
-        print('   - Wait')
-        print('   - Status')
-        print('   - Look')
-        print('   - Map')
-        print('   - Talk')
-        print('   - Help')
-        print('   - Quit')
-        print()
-        return
+        message = "Please try a different command. Recognized commands are:\n\n"+\
+        '- Move\n'+\
+        '- Kill\n'+\
+        '- Take\n'+\
+        '- Give\n'+\
+        '- Use\n'+\
+        '- Wait\n'+\
+        '- Look\n'+\
+        '- Talk\n'+\
+        '- Help\n'+\
+        '- Quit\n\n'
+        return message
     
 def main():
     """Runs test conditions and game."""
@@ -839,44 +856,56 @@ def main():
     g = Control(roomObjs, permCharList)
     g.setupGame()
 
-    check = False
-    while check == False:
-        o = openingSequence()
-        if o == True:
-            check = True
-    print("--------------------| THE THING |--------------------")
-    while g.checkPlayer() == True and g.continueGame() == True:
-        turn(g)
-    if g.checkPlayer() == False:
-        print("Macready died.")
-        print()
-        g.printStats()
-        print()
-        print(creditMessage)
-        return
-    if g.checkPlayer() == True:
-        if g.getInfectedCount() > 0:
-            print("MacReady escaped, but so did The Thing.")
-            print()
-            g.printStats()
-            print()
-            print(creditMessage)
-            return
-        else:
-            if g.getAliveCount() > 2:
-                print("MacReady escaped with survivors. Best ending possible.")
-                print()
-                g.printStats()
-                print()
-                print(creditMessage)
-                return
-            else:
-                print("MacReady escaped without survivors. The world survives, but he is imprisoned for murder.")
-                print()
-                g.printStats()
-                print()
-                print(creditMessage)
-                return
-        
+##    check = False
+##    while check == False:
+##        o = openingSequence()
+##        if o == True:
+##            check = True
+##    print("--------------------| THE THING |--------------------")
+##    while g.checkPlayer() == True and g.continueGame() == True:
+##        turn(g)
+##    if g.checkPlayer() == False:
+##        print("Macready died.")
+##        print()
+##        g.printStats()
+##        print()
+##        print(creditMessage)
+##        return
+##    if g.checkPlayer() == True:
+##        if g.getInfectedCount() > 0:
+##            print("MacReady escaped, but so did The Thing.")
+##            print()
+##            g.printStats()
+##            print()
+##            print(creditMessage)
+##            return
+##        else:
+##            if g.getAliveCount() > 2:
+##                print("MacReady escaped with survivors. Best ending possible.")
+##                print()
+##                g.printStats()
+##                print()
+##                print(creditMessage)
+##                return
+##            else:
+##                print("MacReady escaped without survivors. The world survives, but he is imprisoned for murder.")
+##                print()
+##                g.printStats()
+##                print()
+##                print(creditMessage)
+##                return
+
+    test1 = newParse("Move to dining room")
+    print(test1)
+    test2 = newParse("Take blood from blair")
+    print(test2)
+    test3 = newParse("Take blood from van wall")
+    print(test3)
+    test4 = newParse("Give blair's blood")
+    print(test4)
+    test5 = newParse("Give bennings' blood")
+    print(test5)
+    test6 = newParse("Give Van Wall's blood")
+    print(test6)
 if __name__ == '__main__':
     main()

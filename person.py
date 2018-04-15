@@ -80,6 +80,12 @@ class MacReady(Person):
     def getInventory(self):
         """Returns items in MacReady's inventory."""
         return self._inventory
+    def removeInventory(self, i):
+        """Removes an item from MacReady's inventory at the ith position."""
+        if type(i) != int:
+            return False
+        else:
+            del self._inventory[i]
         
 class Blair(Person):
     """Special character instance; provides guidance for the playable character."""
