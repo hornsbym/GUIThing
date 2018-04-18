@@ -25,20 +25,20 @@ class Window(Frame):
 
         self.bind("<Return>", self.submit)
 
-        self._outputLabel = Label(self, text=roomDict["Blair's Room"], relief="raised", anchor=NW, height=20, width=50, bg='white', wraplength=400, justify=LEFT)
+        self._outputLabel = Label(self, text=roomDict["Blair's Room"], relief="raised", anchor=NW, height=23, width=60, bg='white', wraplength=400, justify=LEFT)
         self._outputLabel.grid(row=0, column=1, rowspan= 3, columnspan=1, pady=10, padx = 5)
 
         self._inputLabel = Label(self, text = "Command: ", fg="white", bg="gray")
         self._inputLabel.grid(row=3, column=0)
 
         self._inputVar = StringVar()
-        self._inputField = Entry(self, text="Press Submit to start.", width=50, textvariable=self._inputVar)
+        self._inputField = Entry(self, text="Press 'Enter' or 'Submit' to begin.", width=50, textvariable=self._inputVar)
         self._inputField.grid(row=3, column=1, pady=5)
 
         self._submitButton = Button(self, text="Submit", command=self.submit)
         self._submitButton.grid(row=3, column=2, padx=3, sticky=W)
 
-        self._turnLabel = Label(self, text="Turn "+str(game.getTurnCount())+"\n"+game.showPlayer()+"\n"+ str(game.getInfectedCount())+" infected", justify=CENTER, bg="gray", fg="white")
+        self._turnLabel = Label(self, text="Turn "+str(game.getTurnCount())+"\n"+game.showPlayer()+"\n\n"+ str(game.getInfectedCount())+" infected\n"+str(game.getAliveCount())+" alive", justify=CENTER, bg="gray", fg="white")
         self._turnLabel.grid(row=0, column=0, padx = 10)
 
         self._occupantLabel = Label(self, text="Occupants: \n"+str(game.occupants()), justify=LEFT, bg="gray", fg="white")
@@ -75,7 +75,7 @@ class Window(Frame):
             return
     def updateTurn(self):
         """Updates the turn-count label."""
-        self._turnLabel['text'] = "Turn " + str(game.getTurnCount())+"\n"+game.showPlayer()+"\n"+ str(game.getInfectedCount())+" infected"
+        self._turnLabel['text'] = "Turn "+str(game.getTurnCount())+"\n"+game.showPlayer()+"\n\n"+ str(game.getInfectedCount())+" infected\n"+str(game.getAliveCount())+" alive"
         return
     def updateChar(self):
         """Updates the occupant label:"""
